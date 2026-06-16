@@ -205,7 +205,8 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+      background: #fafafa;
     }
 
     .item-block-actions {
@@ -295,6 +296,7 @@
       overflow-x: hidden;
       min-height: 0;
       overscroll-behavior: contain;
+      background: #ebebed;
     }
 
     #area-impressao {
@@ -304,23 +306,70 @@
       box-shadow: var(--shadow-receipt);
       width: 100%;
       max-width: 210mm;
-      padding: 18mm 20mm;
-      min-height: 480px;
+      min-height: 297mm;
+      padding: 20mm 24mm;
       border: 1px solid var(--border);
+      font-family: "Times New Roman", Times, serif;
+      font-size: 12pt;
+      line-height: 1.45;
     }
 
-    .secao-curriculo {
-      margin-bottom: 14pt;
-    }
-
-    .secao-titulo {
-      font-size: 10pt;
+    .cv-nome {
+      text-align: center;
       font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 1.5pt;
-      border-bottom: 0.5pt solid #000;
-      margin-bottom: 6pt;
-      padding-bottom: 2pt;
+      font-size: 15pt;
+      margin-bottom: 16pt;
+      letter-spacing: 0.3pt;
+    }
+
+    .cv-secao {
+      margin-bottom: 12pt;
+    }
+
+    .cv-secao-titulo {
+      font-weight: bold;
+      margin-bottom: 5pt;
+    }
+
+    .cv-secao-corpo {
+      padding-left: 2pt;
+    }
+
+    .cv-dado {
+      margin-bottom: 3pt;
+    }
+
+    .cv-lista-item {
+      margin-bottom: 3pt;
+      padding-left: 2pt;
+    }
+
+    .cv-exp {
+      margin-bottom: 8pt;
+    }
+
+    .cv-exp:last-child {
+      margin-bottom: 0;
+    }
+
+    .cv-exp-empresa,
+    .cv-exp-linha {
+      font-weight: bold;
+      margin-bottom: 2pt;
+    }
+
+    .cv-caracteristicas {
+      text-align: justify;
+    }
+
+    .cv-ph {
+      color: #8a8a96;
+      font-style: italic;
+      font-weight: normal;
+    }
+
+    .cv-exp .cv-ph {
+      display: block;
     }
 
     .alerta-info,
@@ -465,8 +514,8 @@
         min-height: 297mm;
         margin: 0;
         padding: 15mm 20mm;
-        font-family: "Segoe UI", Arial, sans-serif;
-        font-size: 11pt;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
         color: #000;
         background: #fff;
         border: none;
@@ -475,23 +524,14 @@
         page-break-inside: avoid;
       }
 
-      .secao-curriculo {
-        margin-bottom: 12pt;
-      }
-
-      .secao-titulo {
-        font-size: 10pt;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1.5pt;
-        border-bottom: 0.5pt solid #000;
-        margin-bottom: 6pt;
-        padding-bottom: 2pt;
-      }
-
       @page {
         size: A4;
         margin: 0;
+      }
+
+      .cv-ph {
+        color: #000 !important;
+        font-style: normal !important;
       }
     }
     </style>
@@ -519,26 +559,34 @@
       </header>
 
       <aside class="sidebar">
-        <span class="sidebar-title">Dados Pessoais</span>
+        <span class="sidebar-title">Dados pessoais</span>
         <div class="field-group">
           <div class="field">
             <label for="inp-nome">Nome completo</label>
-            <input id="inp-nome" type="text" placeholder="Seu nome completo" />
+            <input id="inp-nome" type="text" placeholder="Ex: Maria da Silva" />
           </div>
           <div class="field-row">
             <div class="field">
-              <label for="inp-profissao">Profissão/Cargo desejado</label>
-              <input id="inp-profissao" type="text" placeholder="Ex: Recepcionista" />
+              <label for="inp-nascimento">Data de nascimento</label>
+              <input id="inp-nascimento" type="text" placeholder="11/05/1979" />
             </div>
             <div class="field">
-              <label for="inp-cidadeUf">Cidade/UF</label>
-              <input id="inp-cidadeUf" type="text" placeholder="Ex: São Paulo/SP" />
+              <label for="inp-estado-civil">Estado civil</label>
+              <input id="inp-estado-civil" type="text" placeholder="Solteiro(a)" />
             </div>
+          </div>
+          <div class="field">
+            <label for="inp-endereco">Endereço</label>
+            <input id="inp-endereco" type="text" placeholder="Rua, nº — Bairro" />
+          </div>
+          <div class="field">
+            <label for="inp-cidadeUf">Cidade/UF</label>
+            <input id="inp-cidadeUf" type="text" placeholder="Curitiba/PR" />
           </div>
           <div class="field-row">
             <div class="field">
               <label for="inp-telefone">Telefone</label>
-              <input id="inp-telefone" type="text" placeholder="(00) 00000-0000" inputmode="tel" />
+              <input id="inp-telefone" type="text" placeholder="(41) 99999-9999" inputmode="tel" />
             </div>
             <div class="field">
               <label for="inp-email">E-mail</label>
@@ -546,48 +594,56 @@
             </div>
           </div>
           <div class="field">
-            <label for="inp-linkedin">LinkedIn (opcional)</label>
-            <input id="inp-linkedin" type="text" placeholder="linkedin.com/in/..." />
+            <label for="inp-cnh">CNH</label>
+            <input id="inp-cnh" type="text" placeholder="B" />
           </div>
         </div>
 
         <div class="divider"></div>
 
-        <span class="sidebar-title">Objetivo Profissional</span>
+        <span class="sidebar-title">Objetivo</span>
         <div class="field-group">
           <div class="field">
-            <textarea id="inp-objetivo" rows="3" placeholder="Descreva seu objetivo profissional..."></textarea>
-            <span class="field-hint">Sugestão: 2-3 linhas para caber bem no A4.</span>
+            <textarea id="inp-objetivo" rows="3" placeholder="À Disposição da Empresa"></textarea>
+            <span class="field-hint">Uma linha por item (aparece com traço “-” no currículo).</span>
           </div>
         </div>
 
         <div class="divider"></div>
 
-        <span class="sidebar-title">Habilidades</span>
+        <span class="sidebar-title">Escolaridade</span>
         <div class="field-group">
           <div class="field">
-            <textarea id="inp-habilidades" rows="3" placeholder="Ex: Excel, Atendimento ao Cliente, Digitação"></textarea>
-            <span class="field-hint">Separe por vírgula ou quebras de linha.</span>
+            <textarea id="inp-escolaridade" rows="3" placeholder="Ensino Médio Incompleto"></textarea>
+            <span class="field-hint">Uma linha por item.</span>
           </div>
         </div>
 
         <div class="divider"></div>
 
-        <span class="sidebar-title">Experiência Profissional</span>
+        <span class="sidebar-title">Cursos</span>
+        <div class="field-group">
+          <div class="field">
+            <textarea id="inp-cursos" rows="3" placeholder="Portaria&#10;Controlador de Acesso"></textarea>
+            <span class="field-hint">Uma linha por curso.</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <span class="sidebar-title">Atividades profissionais</span>
         <div id="lista-experiencias"></div>
-        <button type="button" id="btn-adicionar-experiencia" class="btn btn-primary btn-add">+ Adicionar Experiência</button>
+        <button type="button" id="btn-adicionar-experiencia" class="btn btn-primary btn-add">+ Adicionar atividade</button>
 
         <div class="divider"></div>
 
-        <span class="sidebar-title">Formação Acadêmica</span>
-        <div id="lista-formacoes"></div>
-        <button type="button" id="btn-adicionar-formacao" class="btn btn-primary btn-add">+ Adicionar Formação</button>
-
-        <div class="divider"></div>
-
-        <span class="sidebar-title">Cursos Extras (opcional)</span>
-        <div id="lista-cursos-extras"></div>
-        <button type="button" id="btn-adicionar-curso-extra" class="btn btn-primary btn-add">+ Adicionar Curso</button>
+        <span class="sidebar-title">Características pessoais</span>
+        <div class="field-group">
+          <div class="field">
+            <textarea id="inp-caracteristicas" rows="4" placeholder="Facilidade de aprendizado, ótimo relacionamento..."></textarea>
+            <span class="field-hint">Texto justificado no documento. Uma linha por item.</span>
+          </div>
+        </div>
 
         <div id="msg-estado" style="display:none;"></div>
 
@@ -629,45 +685,7 @@
 
       <main class="preview-area">
         <div id="area-impressao">
-          <div class="preview-curriculo">
-            <div class="secao-curriculo">
-              <h1 id="prev-nome" style="font-size: 18pt; font-weight: 800; margin-bottom: 4pt;"></h1>
-              <div style="display:flex; gap: 12pt; flex-wrap:wrap; margin-bottom: 4pt;">
-                <div id="prev-profissao" style="font-weight: 700;"></div>
-                <div id="prev-cidadeUf" style="font-weight: 700;"></div>
-              </div>
-              <div style="display:flex; gap: 10pt; flex-wrap:wrap; font-size: 10.5pt; margin-bottom: 8pt;">
-                <span id="prev-telefone"></span>
-                <span id="prev-email"></span>
-                <span id="prev-linkedin"></span>
-              </div>
-            </div>
-
-            <div class="secao-curriculo">
-              <div class="secao-titulo">Objetivo Profissional</div>
-              <div id="prev-objetivo" style="font-size: 10.5pt; margin-top: 6pt;"></div>
-            </div>
-
-            <div class="secao-curriculo">
-              <div class="secao-titulo">Experiência Profissional</div>
-              <div id="prev-experiencias" style="margin-top: 6pt;"></div>
-            </div>
-
-            <div class="secao-curriculo">
-              <div class="secao-titulo">Formação Acadêmica</div>
-              <div id="prev-formacoes" style="margin-top: 6pt;"></div>
-            </div>
-
-            <div class="secao-curriculo">
-              <div class="secao-titulo">Habilidades</div>
-              <div id="prev-habilidades" style="margin-top: 6pt; font-size: 10.5pt;"></div>
-            </div>
-
-            <div class="secao-curriculo" id="secao-prev-cursos" style="display:none;">
-              <div class="secao-titulo">Cursos e Certificações</div>
-              <div id="prev-cursos" style="margin-top: 6pt; font-size: 10.5pt;"></div>
-            </div>
-          </div>
+          <div id="prev-conteudo"></div>
         </div>
       </main>
     </div>
@@ -816,22 +834,6 @@ const LanHouseStorage = (() => {
         return String(valor || "").replace(/\r\n/g, "\n").trim();
       }
 
-      function splitHabilidades(valor) {
-        return String(valor || "")
-          .split(/[,;\n]/g)
-          .map((s) => s.trim())
-          .filter(Boolean);
-      }
-
-      function renderQuebras(texto) {
-        const t = String(texto || "").trim();
-        if (!t) return "";
-        return t
-          .split("\n")
-          .map((line) => `<div>${escapeHtml(line)}</div>`)
-          .join("");
-      }
-
       function escapeHtml(str) {
         return String(str)
           .replaceAll("&", "&amp;")
@@ -841,38 +843,95 @@ const LanHouseStorage = (() => {
           .replaceAll("'", "&#039;");
       }
 
-      // --- SEÇÃO: criação de itens dinâmicos (Experiências/Formações/Cursos) ---
+      function splitLinhas(valor) {
+        return String(valor || "")
+          .split(/\n/g)
+          .map((s) => s.replace(/^[-•]\s*/, "").trim())
+          .filter(Boolean);
+      }
+
+      const PLACEHOLDERS = {
+        nome: "Seu Nome Completo",
+        nascimento: "00/00/0000",
+        estadoCivil: "Estado civil",
+        endereco: "Rua, número — Bairro",
+        cidade: "Cidade/UF",
+        telefone: "(00) 00000-0000",
+        email: "seu@email.com",
+        cnh: "B",
+        objetivo: ["À Disposição da Empresa"],
+        escolaridade: ["Ensino Médio Completo"],
+        cursos: ["Nome do curso"],
+        caracteristicas: [
+          "Facilidade de aprendizado, ótimo relacionamento interpessoal e responsabilidade nas atividades.",
+        ],
+        exp: {
+          empresa: "Nome da empresa",
+          funcao: "Cargo exercido",
+          periodo: "Período (ex: 6 meses)",
+        },
+      };
+
+      function textoOuPlaceholder(valor, placeholder) {
+        const v = String(valor || "").trim();
+        if (v) return { html: escapeHtml(v), placeholder: false };
+        return { html: escapeHtml(placeholder), placeholder: true };
+      }
+
+      function renderListaItens(linhas, defaults) {
+        const items = linhas.length ? linhas : defaults;
+        return items
+          .map((item, i) => {
+            const isPh = !linhas.length;
+            const cls = isPh ? " cv-ph" : "";
+            return `<div class="cv-lista-item${cls}">- ${escapeHtml(item)}</div>`;
+          })
+          .join("");
+      }
+
+      function renderSecao(titulo, conteudo) {
+        return `<div class="cv-secao"><div class="cv-secao-titulo">${escapeHtml(titulo)}</div><div class="cv-secao-corpo">${conteudo}</div></div>`;
+      }
+
+      function renderDado(rotulo, valor, placeholder) {
+        const { html, placeholder: isPh } = textoOuPlaceholder(valor, placeholder);
+        const cls = isPh ? "cv-ph" : "";
+        return `<div class="cv-dado">${escapeHtml(rotulo)}: <span class="${cls}">${html}</span></div>`;
+      }
+
+      function renderExperiencia(item) {
+        const empresa = textoOuPlaceholder(item.empresa, PLACEHOLDERS.exp.empresa);
+        const funcao = textoOuPlaceholder(item.funcao, PLACEHOLDERS.exp.funcao);
+        const periodo = textoOuPlaceholder(item.periodo, PLACEHOLDERS.exp.periodo);
+
+        return `<div class="cv-exp">
+          <div class="cv-exp-empresa${empresa.placeholder ? " cv-ph" : ""}">${empresa.html}</div>
+          <div class="cv-exp-linha">Função: <span class="${funcao.placeholder ? "cv-ph" : ""}">${funcao.html}</span></div>
+          <div class="cv-exp-linha">Período: <span class="${periodo.placeholder ? "cv-ph" : ""}">${periodo.html}</span></div>
+        </div>`;
+      }
+
+      // --- SEÇÃO: criação de itens dinâmicos (Atividades profissionais) ---
       function criarBlocoExperiencia(data) {
         const wrapper = document.createElement("div");
         wrapper.className = "item-block";
         wrapper.setAttribute("data-tipo", "experiencia");
 
         wrapper.innerHTML = `
-          <div class="field-row">
-            <div class="field">
-              <label>Empresa</label>
-              <input class="exp-empresa" type="text" value="${escapeHtml(data?.empresa || "")}" placeholder="Nome da empresa" />
-            </div>
-            <div class="field">
-              <label>Cargo</label>
-              <input class="exp-cargo" type="text" value="${escapeHtml(data?.cargo || "")}" placeholder="Cargo exercido" />
-            </div>
+          <div class="field">
+            <label>Empresa / local</label>
+            <input class="exp-empresa" type="text" value="${escapeHtml(data?.empresa || "")}" placeholder="Ex: Condor Super Center" />
           </div>
 
           <div class="field-row" style="margin-top: 10px;">
             <div class="field">
-              <label>Período (de)</label>
-              <input class="exp-de" type="text" value="${escapeHtml(data?.periodoDe || "")}" placeholder="Ex: 2021" />
+              <label>Função</label>
+              <input class="exp-funcao" type="text" value="${escapeHtml(data?.funcao || data?.cargo || "")}" placeholder="Ex: Confeiteiro" />
             </div>
             <div class="field">
-              <label>Período (até)</label>
-              <input class="exp-ate" type="text" value="${escapeHtml(data?.periodoAte || "")}" placeholder="Ex: 2023" />
+              <label>Período</label>
+              <input class="exp-periodo" type="text" value="${escapeHtml(data?.periodo || "")}" placeholder="Ex: 6 Meses ou 04/2007 a 03/2010" />
             </div>
-          </div>
-
-          <div class="field" style="margin-top: 10px;">
-            <label>Descrição das atividades</label>
-            <textarea class="exp-descricao" rows="3" placeholder="O que você fazia?">${escapeHtml(data?.descricao || "")}</textarea>
           </div>
 
           <div class="item-block-actions">
@@ -882,197 +941,76 @@ const LanHouseStorage = (() => {
         return wrapper;
       }
 
-      function criarBlocoFormacao(data) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "item-block";
-        wrapper.setAttribute("data-tipo", "formacao");
-
-        wrapper.innerHTML = `
-          <div class="field-row">
-            <div class="field">
-              <label>Curso</label>
-              <input class="form-curso" type="text" value="${escapeHtml(data?.curso || "")}" placeholder="Ex: Técnico em Informática" />
-            </div>
-            <div class="field">
-              <label>Instituição</label>
-              <input class="form-inst" type="text" value="${escapeHtml(data?.instituicao || "")}" placeholder="Ex: Escola X" />
-            </div>
-          </div>
-
-          <div class="field-row" style="margin-top: 10px;">
-            <div class="field">
-              <label>Nível</label>
-              <select class="form-nivel">
-                <option value="" ${!data?.nivel ? "selected" : ""}>Selecione...</option>
-                <option value="Médio/Técnico" ${data?.nivel === "Médio/Técnico" ? "selected" : ""}>Médio/Técnico</option>
-                <option value="Superior" ${data?.nivel === "Superior" ? "selected" : ""}>Superior</option>
-                <option value="Pós" ${data?.nivel === "Pós" ? "selected" : ""}>Pós</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Período</label>
-              <input class="form-periodo" type="text" value="${escapeHtml(data?.periodo || "")}" placeholder="Ex: 2018 - 2020" />
-            </div>
-          </div>
-
-          <div class="item-block-actions">
-            <button type="button" class="btn btn-danger btn-sm" data-remove-formacao="1">Remover</button>
-          </div>
-        `;
-        return wrapper;
-      }
-
-      function criarBlocoCursoExtra(data) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "item-block";
-        wrapper.setAttribute("data-tipo", "curso-extra");
-
-        wrapper.innerHTML = `
-          <div class="field-row">
-            <div class="field">
-              <label>Nome do curso</label>
-              <input class="curso-nome" type="text" value="${escapeHtml(data?.nomeCurso || "")}" placeholder="Ex: Excel Avançado" />
-            </div>
-            <div class="field">
-              <label>Instituição</label>
-              <input class="curso-inst" type="text" value="${escapeHtml(data?.instituicao || "")}" placeholder="Ex: Senai" />
-            </div>
-          </div>
-
-          <div class="field" style="margin-top: 10px;">
-            <label>Carga horária</label>
-            <input class="curso-carga" type="text" value="${escapeHtml(data?.cargaHoraria || "")}" placeholder="Ex: 40h" />
-          </div>
-
-          <div class="item-block-actions">
-            <button type="button" class="btn btn-danger btn-sm" data-remove-curso-extra="1">Remover</button>
-          </div>
-        `;
-        return wrapper;
-      }
-
       // --- SEÇÃO: áreas dinâmicas ---
       const listaExperiencias = $("lista-experiencias");
-      const listaFormacoes = $("lista-formacoes");
-      const listaCursosExtras = $("lista-cursos-extras");
 
       function obterEstadoDoFormulario() {
         const personal = {
           nomeCompleto: normalizarTextoLivre($("inp-nome").value),
-          profissaoCargo: normalizarTextoLivre($("inp-profissao").value),
+          dataNascimento: normalizarTextoLivre($("inp-nascimento").value),
+          estadoCivil: normalizarTextoLivre($("inp-estado-civil").value),
+          endereco: normalizarTextoLivre($("inp-endereco").value),
           cidadeUf: normalizarTextoLivre($("inp-cidadeUf").value),
           telefone: normalizarTextoLivre($("inp-telefone").value),
           email: normalizarTextoLivre($("inp-email").value),
-          linkedin: normalizarTextoLivre($("inp-linkedin").value),
+          cnh: normalizarTextoLivre($("inp-cnh").value),
         };
 
         const objetivo = normalizarMultilinha($("inp-objetivo").value);
+        const escolaridade = normalizarMultilinha($("inp-escolaridade").value);
+        const cursos = normalizarMultilinha($("inp-cursos").value);
+        const caracteristicas = normalizarMultilinha($("inp-caracteristicas").value);
 
         const experiencias = Array.from(listaExperiencias.querySelectorAll('[data-tipo="experiencia"]')).map((el) => ({
           empresa: el.querySelector(".exp-empresa")?.value || "",
-          cargo: el.querySelector(".exp-cargo")?.value || "",
-          periodoDe: el.querySelector(".exp-de")?.value || "",
-          periodoAte: el.querySelector(".exp-ate")?.value || "",
-          descricao: el.querySelector(".exp-descricao")?.value || "",
+          funcao: el.querySelector(".exp-funcao")?.value || "",
+          periodo: el.querySelector(".exp-periodo")?.value || "",
         }));
 
-        const formacoes = Array.from(listaFormacoes.querySelectorAll('[data-tipo="formacao"]')).map((el) => ({
-          instituicao: el.querySelector(".form-inst")?.value || "",
-          curso: el.querySelector(".form-curso")?.value || "",
-          nivel: el.querySelector(".form-nivel")?.value || "",
-          periodo: el.querySelector(".form-periodo")?.value || "",
-        }));
-
-        const habilidades = $("inp-habilidades").value || "";
-
-        const cursosExtras = Array.from(listaCursosExtras.querySelectorAll('[data-tipo="curso-extra"]')).map((el) => ({
-          nomeCurso: el.querySelector(".curso-nome")?.value || "",
-          instituicao: el.querySelector(".curso-inst")?.value || "",
-          cargaHoraria: el.querySelector(".curso-carga")?.value || "",
-        }));
-
-        return { personal, objetivo, experiencias, formacoes, habilidades, cursosExtras };
+        return { personal, objetivo, escolaridade, cursos, caracteristicas, experiencias };
       }
 
       function atualizarPreview() {
         const state = obterEstadoDoFormulario();
+        const p = state.personal;
+        let html = "";
 
-        $("prev-nome").textContent = state.personal.nomeCompleto || "—";
-        $("prev-profissao").textContent = state.personal.profissaoCargo
-          ? `${state.personal.profissaoCargo}`
-          : "Profissão/Cargo";
-        $("prev-cidadeUf").textContent = state.personal.cidadeUf ? state.personal.cidadeUf : "";
+        const nome = textoOuPlaceholder(p.nomeCompleto, PLACEHOLDERS.nome);
+        html += `<div class="cv-nome${nome.placeholder ? " cv-ph" : ""}">${nome.html}</div>`;
 
-        const telefone = state.personal.telefone ? `Telefone: ${state.personal.telefone}` : "";
-        const email = state.personal.email ? `E-mail: ${state.personal.email}` : "";
-        const linkedin = state.personal.linkedin ? `LinkedIn: ${state.personal.linkedin}` : "";
-        $("prev-telefone").textContent = telefone;
-        $("prev-email").textContent = email;
-        $("prev-linkedin").textContent = linkedin;
+        let dadosPessoais = "";
+        dadosPessoais += renderDado("Data de Nascimento", p.dataNascimento, PLACEHOLDERS.nascimento);
+        dadosPessoais += renderDado("Estado Civil", p.estadoCivil, PLACEHOLDERS.estadoCivil);
+        dadosPessoais += renderDado("Endereço", p.endereco, PLACEHOLDERS.endereco);
+        dadosPessoais += renderDado("Cidade", p.cidadeUf, PLACEHOLDERS.cidade);
+        dadosPessoais += renderDado("Telefone", p.telefone, PLACEHOLDERS.telefone);
+        dadosPessoais += renderDado("E-mail", p.email, PLACEHOLDERS.email);
+        dadosPessoais += renderDado("CNH", p.cnh, PLACEHOLDERS.cnh);
+        html += renderSecao("Dados pessoais:", dadosPessoais);
 
-        $("prev-objetivo").innerHTML = state.objetivo
-          ? state.objetivo.split("\n").map((line) => escapeHtml(line)).join("<br/>")
-          : "—";
+        const objLinhas = splitLinhas(state.objetivo);
+        html += renderSecao("Objetivo:", renderListaItens(objLinhas, PLACEHOLDERS.objetivo));
 
-        // Experiências
-        const prevExp = [];
-        if (state.experiencias.length) {
-          state.experiencias.forEach((item, idx) => {
-            const cargoEmpresa = [item.cargo, item.empresa].filter(Boolean).join(" — ");
-            const periodo = [item.periodoDe, item.periodoAte].filter(Boolean).join(" até ");
+        const escLinhas = splitLinhas(state.escolaridade);
+        html += renderSecao("Escolaridade:", renderListaItens(escLinhas, PLACEHOLDERS.escolaridade));
 
-            const desc = item.descricao ? normalizarMultilinha(item.descricao) : "";
-            prevExp.push(`
-              <div class="prev-item">
-                <div style="font-weight:700; margin-bottom: 3pt;">${escapeHtml(cargoEmpresa || `Experiência ${idx + 1}`)}</div>
-                <div style="font-size: 10pt; margin-bottom: 4pt; color: rgba(0,0,0,0.75);">${escapeHtml(periodo)}</div>
-                <div style="font-size: 10.5pt;">${desc ? desc.split("\n").map((l) => escapeHtml(l)).join("<br/>") : ""}</div>
-              </div>
-              ${idx < state.experiencias.length - 1 ? '<div class="quebra-linha" style="margin: 8pt 0; border-top: 1px dashed rgba(0,0,0,0.35);"></div>' : ""}
-            `);
-          });
-        } else {
-          prevExp.push(`<div style="color: rgba(0,0,0,0.65);">—</div>`);
-        }
-        $("prev-experiencias").innerHTML = prevExp.join("");
+        const curLinhas = splitLinhas(state.cursos);
+        html += renderSecao("Cursos:", renderListaItens(curLinhas, PLACEHOLDERS.cursos));
 
-        // Formações
-        const prevForm = [];
-        if (state.formacoes.length) {
-          state.formacoes.forEach((f, idx) => {
-            const titulo = [f.curso, f.instituicao].filter(Boolean).join(" — ");
-            const meta = [f.nivel, f.periodo].filter(Boolean).join(" | ");
-            prevForm.push(`
-              <div style="margin-bottom: 6pt;">
-                <div style="font-weight:700;">${escapeHtml(titulo || `Formação ${idx + 1}`)}</div>
-                <div style="font-size:10pt; color: rgba(0,0,0,0.75);">${escapeHtml(meta)}</div>
-              </div>
-            `);
-          });
-        } else {
-          prevForm.push(`<div style="color: rgba(0,0,0,0.65);">—</div>`);
-        }
-        $("prev-formacoes").innerHTML = prevForm.join("");
+        const exps = state.experiencias;
+        const atividades = (exps.length ? exps : [PLACEHOLDERS.exp])
+          .map((item) => {
+            const vazia = !item.empresa?.trim() && !item.funcao?.trim() && !item.periodo?.trim();
+            return renderExperiencia(vazia ? PLACEHOLDERS.exp : item);
+          })
+          .join("");
+        html += renderSecao("Atividades Profissionais:", atividades);
 
-        // Habilidades
-        const habilidades = splitHabilidades(state.habilidades);
-        $("prev-habilidades").textContent = habilidades.length ? habilidades.join(" • ") : "—";
+        const caracLinhas = splitLinhas(state.caracteristicas);
+        const carac = renderListaItens(caracLinhas, PLACEHOLDERS.caracteristicas);
+        html += renderSecao("Características Pessoais:", `<div class="cv-caracteristicas">${carac}</div>`);
 
-        // Cursos extras
-        const cursos = state.cursosExtras.filter((c) => (c.nomeCurso || "").trim() || (c.instituicao || "").trim());
-        if (cursos.length) {
-          $("secao-prev-cursos").style.display = "";
-          $("prev-cursos").innerHTML = cursos
-            .map((c) => {
-              const base = [c.nomeCurso, c.instituicao].filter(Boolean).join(" — ");
-              const carga = c.cargaHoraria ? ` ${c.cargaHoraria}` : "";
-              return `<div style="margin-bottom: 6pt;"><div style="font-weight:700;">${escapeHtml(base)}</div><div style="font-size:10pt; color: rgba(0,0,0,0.75);">${escapeHtml(carga)}</div></div>`;
-            })
-            .join("");
-        } else {
-          $("secao-prev-cursos").style.display = "none";
-          $("prev-cursos").innerHTML = "";
-        }
+        $("prev-conteudo").innerHTML = html;
       }
 
       // --- SEÇÃO: atualização via delegação de eventos ---
@@ -1081,13 +1019,12 @@ const LanHouseStorage = (() => {
         atualizarPreviewDebounced._t = setTimeout(atualizarPreview, 80);
       }
 
-      const containersDeEdicao = [listaExperiencias, listaFormacoes, listaCursosExtras, sidebar];
+      const containersDeEdicao = [listaExperiencias, sidebar];
 
       containersDeEdicao.forEach((container) => {
         if (!container) return;
         container.addEventListener("input", (e) => {
           if (!e.target) return;
-          // Só reagimos a inputs/textareas/selects para reduzir ruído.
           const tag = (e.target.tagName || "").toLowerCase();
           if (tag === "input" || tag === "textarea" || tag === "select") atualizarPreviewDebounced();
         });
@@ -1098,7 +1035,6 @@ const LanHouseStorage = (() => {
         });
       });
 
-      // Remoções com delegação
       listaExperiencias.addEventListener("click", (e) => {
         const btn = e.target.closest('button[data-remove-experiencia="1"]');
         if (!btn) return;
@@ -1106,33 +1042,8 @@ const LanHouseStorage = (() => {
         atualizarPreview();
       });
 
-      listaFormacoes.addEventListener("click", (e) => {
-        const btn = e.target.closest('button[data-remove-formacao="1"]');
-        if (!btn) return;
-        btn.closest('[data-tipo="formacao"]').remove();
-        atualizarPreview();
-      });
-
-      listaCursosExtras.addEventListener("click", (e) => {
-        const btn = e.target.closest('button[data-remove-curso-extra="1"]');
-        if (!btn) return;
-        btn.closest('[data-tipo="curso-extra"]').remove();
-        atualizarPreview();
-      });
-
-      // Adições
       $("btn-adicionar-experiencia").addEventListener("click", () => {
         listaExperiencias.appendChild(criarBlocoExperiencia({}));
-        atualizarPreview();
-      });
-
-      $("btn-adicionar-formacao").addEventListener("click", () => {
-        listaFormacoes.appendChild(criarBlocoFormacao({}));
-        atualizarPreview();
-      });
-
-      $("btn-adicionar-curso-extra").addEventListener("click", () => {
-        listaCursosExtras.appendChild(criarBlocoCursoExtra({}));
         atualizarPreview();
       });
 
@@ -1155,36 +1066,51 @@ const LanHouseStorage = (() => {
           return;
         }
 
-        // Recria itens dinâmicos antes de preencher valores (contrato do prompt).
         listaExperiencias.innerHTML = "";
-        listaFormacoes.innerHTML = "";
-        listaCursosExtras.innerHTML = "";
 
         const state = raw;
 
-        // Personal
         $("inp-nome").value = state.personal?.nomeCompleto || "";
-        $("inp-profissao").value = state.personal?.profissaoCargo || "";
+        $("inp-nascimento").value = state.personal?.dataNascimento || "";
+        $("inp-estado-civil").value = state.personal?.estadoCivil || "";
+        $("inp-endereco").value = state.personal?.endereco || "";
         $("inp-cidadeUf").value = state.personal?.cidadeUf || "";
         $("inp-telefone").value = state.personal?.telefone || "";
         $("inp-email").value = state.personal?.email || "";
-        $("inp-linkedin").value = state.personal?.linkedin || "";
+        $("inp-cnh").value = state.personal?.cnh || "";
 
-        // Objetivo/Habilidades
         $("inp-objetivo").value = state.objetivo || "";
-        $("inp-habilidades").value = state.habilidades || "";
+        $("inp-escolaridade").value = state.escolaridade || state.habilidades || "";
+        $("inp-cursos").value = state.cursos || "";
+        $("inp-caracteristicas").value = state.caracteristicas || "";
 
-        // Experiências
         const exps = Array.isArray(state.experiencias) ? state.experiencias : [];
-        exps.forEach((item) => listaExperiencias.appendChild(criarBlocoExperiencia(item)));
+        exps.forEach((item) => {
+          const migrado = {
+            empresa: item.empresa || "",
+            funcao: item.funcao || item.cargo || "",
+            periodo: item.periodo || [item.periodoDe, item.periodoAte].filter(Boolean).join(" a ") || "",
+          };
+          listaExperiencias.appendChild(criarBlocoExperiencia(migrado));
+        });
 
-        // Formações
-        const forms = Array.isArray(state.formacoes) ? state.formacoes : [];
-        forms.forEach((item) => listaFormacoes.appendChild(criarBlocoFormacao(item)));
+        if (!exps.length && Array.isArray(state.formacoes) && state.formacoes.length) {
+          const linhas = state.formacoes
+            .map((f) => [f.curso, f.nivel, f.instituicao].filter(Boolean).join(" — "))
+            .filter(Boolean);
+          if (linhas.length) $("inp-escolaridade").value = linhas.join("\n");
+        }
 
-        // Cursos Extras
-        const cursos = Array.isArray(state.cursosExtras) ? state.cursosExtras : [];
-        cursos.forEach((item) => listaCursosExtras.appendChild(criarBlocoCursoExtra(item)));
+        if (!state.cursos && Array.isArray(state.cursosExtras)) {
+          const linhas = state.cursosExtras
+            .map((c) => c.nomeCurso || c.instituicao)
+            .filter(Boolean);
+          if (linhas.length) $("inp-cursos").value = linhas.join("\n");
+        }
+
+        if (!exps.length) {
+          listaExperiencias.appendChild(criarBlocoExperiencia({}));
+        }
 
         atualizarPreview();
         mostrarMsg("sucesso", "Rascunho carregado com sucesso.");
@@ -1198,18 +1124,20 @@ const LanHouseStorage = (() => {
 
         // Zerar campos simples
         $("inp-nome").value = "";
-        $("inp-profissao").value = "";
+        $("inp-nascimento").value = "";
+        $("inp-estado-civil").value = "";
+        $("inp-endereco").value = "";
         $("inp-cidadeUf").value = "";
         $("inp-telefone").value = "";
         $("inp-email").value = "";
-        $("inp-linkedin").value = "";
+        $("inp-cnh").value = "";
         $("inp-objetivo").value = "";
-        $("inp-habilidades").value = "";
+        $("inp-escolaridade").value = "";
+        $("inp-cursos").value = "";
+        $("inp-caracteristicas").value = "";
 
-        // Remover itens dinâmicos
         listaExperiencias.innerHTML = "";
-        listaFormacoes.innerHTML = "";
-        listaCursosExtras.innerHTML = "";
+        listaExperiencias.appendChild(criarBlocoExperiencia({}));
 
         // Remover rascunho salvo
         LanHouseStorage.remover("curriculo_rascunho");
@@ -1218,6 +1146,31 @@ const LanHouseStorage = (() => {
       });
 
       $("btn-imprimir").addEventListener("click", () => {
+        const placeholders = document.querySelectorAll("#prev-conteudo .cv-ph");
+        placeholders.forEach((el) => {
+          el.dataset.backup = el.textContent;
+          el.textContent = "";
+        });
+        const limparNome = document.querySelector("#prev-conteudo .cv-nome.cv-ph");
+        if (limparNome) {
+          limparNome.dataset.backup = limparNome.textContent;
+          limparNome.textContent = "";
+        }
+
+        const restaurar = () => {
+          placeholders.forEach((el) => {
+            if (el.dataset.backup !== undefined) {
+              el.textContent = el.dataset.backup;
+              delete el.dataset.backup;
+            }
+          });
+          if (limparNome && limparNome.dataset.backup !== undefined) {
+            limparNome.textContent = limparNome.dataset.backup;
+            delete limparNome.dataset.backup;
+          }
+          window.removeEventListener("afterprint", restaurar);
+        };
+        window.addEventListener("afterprint", restaurar);
         window.print();
       });
 
@@ -1230,7 +1183,8 @@ const LanHouseStorage = (() => {
         }
       })();
 
-      // Ajuste visual inicial (pré-preenchimento pode ser feito no futuro).
+      // Ajuste visual inicial
+      listaExperiencias.appendChild(criarBlocoExperiencia({}));
       atualizarPreview();
     </script>
   </body>
