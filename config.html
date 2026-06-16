@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configurações — LanHouse OS</title>
+    <style>
+:root {
+  --cor-fundo: #f5f5f7;
+  --cor-card: #ffffff;
+  --cor-acento: #e94560;
+  --cor-texto: #1a1a2e;
+  --cor-texto-suave: #5c5c6e;
+  --cor-borda: rgba(0, 0, 0, 0.08);
+  --cor-alerta-info: #3aa0ff;
+  --cor-alerta-sucesso: #2ecc71;
+  --cor-alerta-erro: #e74c3c;
+
+  --fonte-sistema: "Segoe UI", Arial, sans-serif;
+  --raio-borda: 8px;
+  --raio-borda-sm: 6px;
+  --sombra-card: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+  --espaco-1: 8px;
+  --espaco-2: 12px;
+  --espaco-3: 16px;
+  --espaco-4: 24px;
+  --espaco-5: 32px;
+}
+
+/* === Reset básico === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--fonte-sistema);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* === Componentes/Utilitários reutilizáveis === */
+.btn {
+  appearance: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda-sm);
+  background: transparent;
+  color: var(--cor-texto);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn:focus {
+  outline: 2px solid rgba(233, 69, 96, 0.35);
+  outline-offset: 2px;
+}
+
+.btn-primario {
+  background: var(--cor-acento);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #fff;
+}
+
+.btn-primario:hover {
+  filter: brightness(1.05);
+}
+
+.btn-perigo {
+  background: var(--cor-alerta-erro);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #fff;
+}
+
+.btn-sucesso {
+  background: var(--cor-alerta-sucesso);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #fff;
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--cor-borda);
+}
+
+.card {
+  background: var(--cor-card);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  box-shadow: var(--sombra-card);
+  padding: var(--espaco-3);
+}
+
+.campo-form {
+  display: grid;
+  gap: 6px;
+}
+
+.campo-form label {
+  color: var(--cor-texto-suave);
+  font-size: 0.92rem;
+}
+
+.campo-form input,
+.campo-form textarea,
+.campo-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--raio-borda-sm);
+  border: 1px solid var(--cor-borda);
+  background: #ffffff;
+  color: var(--cor-texto);
+}
+
+.campo-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-3);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espaco-3);
+}
+
+.alerta-info,
+.alerta-sucesso,
+.alerta-erro {
+  border-radius: var(--raio-borda-sm);
+  border: 1px solid var(--cor-borda);
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.alerta-info {
+  border-color: rgba(58, 160, 255, 0.35);
+}
+
+.alerta-sucesso {
+  border-color: rgba(46, 204, 113, 0.35);
+}
+
+.alerta-erro {
+  border-color: rgba(231, 76, 60, 0.35);
+}
+
+/* === Responsividade simples === */
+@media (max-width: 900px) {
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* === Regra global de impressão ===
+   Cada módulo pode ter regras específicas para @media print; esta base apenas
+   garante que elementos com classe `.no-print` não apareçam. */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+</style>
+  </head>
+  <body>
+    <main class="card" style="max-width: 920px; margin: 24px auto;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px;">
+        <div>
+          <h1 style="font-size:1.35rem; margin-bottom:6px;">Configurações</h1>
+          <p style="color: var(--cor-texto-suave); font-size: 0.98rem;">
+            Dados da Lan House para reaproveitar nos módulos.
+          </p>
+        </div>
+        <div class="no-print" style="display:flex; gap:10px; align-items:center;">
+          <a href="index.html" class="btn btn-outline">Voltar</a>
+        </div>
+      </div>
+
+      <form id="form-config" class="grid-2" style="align-items:start;">
+        <div class="card" style="box-shadow:none; padding:16px; background: #f8f9fa;">
+          <!-- SEÇÃO: Dados da Lan House -->
+          <div class="campo-form" style="margin-bottom:14px;">
+            <label for="nomeLanHouse">Nome da Lan House</label>
+            <input id="nomeLanHouse" type="text" placeholder="Lan House" />
+          </div>
+
+          <div class="campo-form" style="margin-bottom:14px;">
+            <label for="endereco">Endereço Completo</label>
+            <input id="endereco" type="text" placeholder="Rua, número, bairro, cidade/UF" />
+          </div>
+
+          <div class="campo-form" style="margin-bottom:14px;">
+            <label for="telefone">Telefone</label>
+            <input id="telefone" type="text" placeholder="(00) 00000-0000" inputmode="tel" />
+          </div>
+
+          <div class="campo-form" style="margin-bottom:14px;">
+            <label for="cpfCnpj">CPF/CNPJ</label>
+            <input id="cpfCnpj" type="text" placeholder="000.000.000-00 ou 00.000.000/0000-00" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none; padding:16px; background: #f8f9fa;">
+          <!-- SEÇÃO: Atendente -->
+          <div class="campo-form" style="margin-bottom:14px;">
+            <label for="nomeAtendente">Nome da Atendente Padrão</label>
+            <input id="nomeAtendente" type="text" placeholder="Nome do atendente" />
+          </div>
+
+          <div class="campo-form" style="margin-bottom:14px;">
+            <label for="corTema">Cor de destaque (opcional)</label>
+            <input id="corTema" type="color" />
+            <div style="color: var(--cor-texto-suave); font-size: 0.9rem;">
+              Se quiser manter o padrão, não precisa mexer.
+            </div>
+          </div>
+
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px;">
+            <button type="submit" class="btn btn-primario">Salvar Configurações</button>
+            <button type="button" id="btn-restaurar" class="btn btn-outline">Restaurar Padrões</button>
+          </div>
+
+          <div id="msg-estado" style="display:none; margin-top:14px;"></div>
+        </div>
+      </form>
+    </main>
+
+    <script>
+// LanHouseStorage: utilitário 100% local para LocalStorage
+// (sem dependências externas)
+const LanHouseStorage = (() => {
+  const KEY_CONFIG = "lanhouse_config";
+
+  const defaults = {
+    nomeLanHouse: "Lan House",
+    endereco: "",
+    telefone: "",
+    cpfCnpj: "",
+    nomeAtendente: "",
+    corTema: "#e94560",
+  };
+
+  function safeParseJSON(value) {
+    try {
+      return JSON.parse(value);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function carregarConfig() {
+    const raw = localStorage.getItem(KEY_CONFIG);
+    if (!raw) return { ...defaults };
+    const parsed = safeParseJSON(raw);
+    if (!parsed || typeof parsed !== "object") return { ...defaults };
+    return { ...defaults, ...parsed };
+  }
+
+  function salvarConfig(dados) {
+    const payload = { ...defaults, ...(dados && typeof dados === "object" ? dados : {}) };
+    try {
+      localStorage.setItem(KEY_CONFIG, JSON.stringify(payload));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function salvar(chave, dados) {
+    if (!chave) return false;
+    try {
+      localStorage.setItem(chave, JSON.stringify(dados));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function carregar(chave) {
+    if (!chave) return null;
+    const raw = localStorage.getItem(chave);
+    if (!raw) return null;
+    const parsed = safeParseJSON(raw);
+    return parsed === null ? null : parsed;
+  }
+
+  function listar(prefixo) {
+    const resultados = [];
+    const p = String(prefixo || "");
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(p)) continue;
+
+      const raw = localStorage.getItem(k);
+      const parsed = safeParseJSON(raw);
+      resultados.push({
+        chave: k,
+        dados: parsed,
+      });
+    }
+    return resultados;
+  }
+
+  function remover(chave) {
+    if (!chave) return false;
+    try {
+      localStorage.removeItem(chave);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  return {
+    defaults,
+    carregarConfig,
+    salvarConfig,
+    salvar,
+    carregar,
+    listar,
+    remover,
+  };
+})();
+    </script>
+    <script>
+      // --- SEÇÃO: helpers de UI ---
+      const $ = (id) => document.getElementById(id);
+      const form = $("form-config");
+      const msgEstado = $("msg-estado");
+
+      function setMensagem(tipo, texto) {
+        msgEstado.style.display = "block";
+        msgEstado.className = "";
+        if (tipo === "sucesso") msgEstado.classList.add("alerta-sucesso");
+        if (tipo === "erro") msgEstado.classList.add("alerta-erro");
+        if (tipo === "info") msgEstado.classList.add("alerta-info");
+        msgEstado.textContent = texto;
+      }
+
+      // --- SEÇÃO: inicialização ---
+      function preencherFormulario(config) {
+        $("nomeLanHouse").value = config.nomeLanHouse || "";
+        $("endereco").value = config.endereco || "";
+        $("telefone").value = config.telefone || "";
+        $("cpfCnpj").value = config.cpfCnpj || "";
+        $("nomeAtendente").value = config.nomeAtendente || "";
+        $("corTema").value = config.corTema || "#e94560";
+
+        // Aplica a cor tema ao documento (opcional, para deixar consistente).
+        document.documentElement.style.setProperty("--cor-acento", $("corTema").value);
+      }
+
+      const configAtual = LanHouseStorage.carregarConfig();
+      preencherFormulario(configAtual);
+
+      // --- SEÇÃO: salvar ---
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const dados = {
+          nomeLanHouse: $("nomeLanHouse").value.trim(),
+          endereco: $("endereco").value.trim(),
+          telefone: $("telefone").value.trim(),
+          cpfCnpj: $("cpfCnpj").value.trim(),
+          nomeAtendente: $("nomeAtendente").value.trim(),
+          corTema: $("corTema").value,
+        };
+
+        const ok = LanHouseStorage.salvarConfig(dados);
+        if (ok) {
+          setMensagem("sucesso", "Configurações salvas com sucesso.");
+        } else {
+          setMensagem("erro", "Não foi possível salvar as configurações no navegador.");
+        }
+      });
+
+      $("btn-restaurar").addEventListener("click", () => {
+        preencherFormulario(LanHouseStorage.defaults);
+        setMensagem("info", "Valores de exemplo restaurados. Clique em Salvar para persistir.");
+      });
+    </script>
+  </body>
+</html>
+

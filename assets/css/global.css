@@ -1,0 +1,183 @@
+:root {
+  --cor-fundo: #1a1a2e;
+  --cor-card: #16213e;
+  --cor-acento: #e94560;
+  --cor-texto: #eaeaea;
+  --cor-texto-suave: #a0a0b0;
+  --cor-borda: rgba(255, 255, 255, 0.08);
+  --cor-alerta-info: #3aa0ff;
+  --cor-alerta-sucesso: #2ecc71;
+  --cor-alerta-erro: #e74c3c;
+
+  --fonte-sistema: "Segoe UI", Arial, sans-serif;
+  --raio-borda: 8px;
+  --raio-borda-sm: 6px;
+  --sombra-card: 0 4px 15px rgba(0, 0, 0, 0.3);
+
+  --espaco-1: 8px;
+  --espaco-2: 12px;
+  --espaco-3: 16px;
+  --espaco-4: 24px;
+  --espaco-5: 32px;
+}
+
+/* === Reset básico === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--fonte-sistema);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* === Componentes/Utilitários reutilizáveis === */
+.btn {
+  appearance: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda-sm);
+  background: transparent;
+  color: var(--cor-texto);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn:focus {
+  outline: 2px solid rgba(233, 69, 96, 0.35);
+  outline-offset: 2px;
+}
+
+.btn-primario {
+  background: var(--cor-acento);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.btn-primario:hover {
+  filter: brightness(1.05);
+}
+
+.btn-perigo {
+  background: var(--cor-alerta-erro);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.btn-sucesso {
+  background: var(--cor-alerta-sucesso);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--cor-borda);
+}
+
+.card {
+  background: var(--cor-card);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  box-shadow: var(--sombra-card);
+  padding: var(--espaco-3);
+}
+
+.campo-form {
+  display: grid;
+  gap: 6px;
+}
+
+.campo-form label {
+  color: var(--cor-texto-suave);
+  font-size: 0.92rem;
+}
+
+.campo-form input,
+.campo-form textarea,
+.campo-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--raio-borda-sm);
+  border: 1px solid var(--cor-borda);
+  background: rgba(0, 0, 0, 0.15);
+  color: var(--cor-texto);
+}
+
+.campo-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-3);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espaco-3);
+}
+
+.alerta-info,
+.alerta-sucesso,
+.alerta-erro {
+  border-radius: var(--raio-borda-sm);
+  border: 1px solid var(--cor-borda);
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.alerta-info {
+  border-color: rgba(58, 160, 255, 0.35);
+}
+
+.alerta-sucesso {
+  border-color: rgba(46, 204, 113, 0.35);
+}
+
+.alerta-erro {
+  border-color: rgba(231, 76, 60, 0.35);
+}
+
+/* === Responsividade simples === */
+@media (max-width: 900px) {
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* === Regra global de impressão ===
+   Cada módulo pode ter regras específicas para @media print; esta base apenas
+   garante que elementos com classe `.no-print` não apareçam. */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+

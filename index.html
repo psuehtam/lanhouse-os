@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LanHouse OS — Sistema Offline</title>
+    <style>
+:root {
+  --cor-fundo: #f5f5f7;
+  --cor-card: #ffffff;
+  --cor-acento: #e94560;
+  --cor-texto: #1a1a2e;
+  --cor-texto-suave: #5c5c6e;
+  --cor-borda: rgba(0, 0, 0, 0.08);
+  --cor-alerta-info: #3aa0ff;
+  --cor-alerta-sucesso: #2ecc71;
+  --cor-alerta-erro: #e74c3c;
+
+  --fonte-sistema: "Segoe UI", Arial, sans-serif;
+  --raio-borda: 8px;
+  --raio-borda-sm: 6px;
+  --sombra-card: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+  --espaco-1: 8px;
+  --espaco-2: 12px;
+  --espaco-3: 16px;
+  --espaco-4: 24px;
+  --espaco-5: 32px;
+}
+
+/* === Reset básico === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--fonte-sistema);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* === Componentes/Utilitários reutilizáveis === */
+.btn {
+  appearance: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda-sm);
+  background: transparent;
+  color: var(--cor-texto);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn:focus {
+  outline: 2px solid rgba(233, 69, 96, 0.35);
+  outline-offset: 2px;
+}
+
+.btn-primario {
+  background: var(--cor-acento);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #fff;
+}
+
+.btn-primario:hover {
+  filter: brightness(1.05);
+}
+
+.btn-perigo {
+  background: var(--cor-alerta-erro);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #fff;
+}
+
+.btn-sucesso {
+  background: var(--cor-alerta-sucesso);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #fff;
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: var(--cor-borda);
+}
+
+.card {
+  background: var(--cor-card);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda);
+  box-shadow: var(--sombra-card);
+  padding: var(--espaco-3);
+}
+
+.campo-form {
+  display: grid;
+  gap: 6px;
+}
+
+.campo-form label {
+  color: var(--cor-texto-suave);
+  font-size: 0.92rem;
+}
+
+.campo-form input,
+.campo-form textarea,
+.campo-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--raio-borda-sm);
+  border: 1px solid var(--cor-borda);
+  background: #ffffff;
+  color: var(--cor-texto);
+}
+
+.campo-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco-3);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espaco-3);
+}
+
+.alerta-info,
+.alerta-sucesso,
+.alerta-erro {
+  border-radius: var(--raio-borda-sm);
+  border: 1px solid var(--cor-borda);
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.alerta-info {
+  border-color: rgba(58, 160, 255, 0.35);
+}
+
+.alerta-sucesso {
+  border-color: rgba(46, 204, 113, 0.35);
+}
+
+.alerta-erro {
+  border-color: rgba(231, 76, 60, 0.35);
+}
+
+/* === Responsividade simples === */
+@media (max-width: 900px) {
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* === Regra global de impressão ===
+   Cada módulo pode ter regras específicas para @media print; esta base apenas
+   garante que elementos com classe `.no-print` não apareçam. */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+</style>
+  </head>
+  <body>
+    <div style="max-width: 1100px; margin: 22px auto; padding: 0 16px;">
+      <!-- SEÇÃO: Cabeçalho -->
+      <header
+        class="card no-print"
+        style="padding: 18px 18px; display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px;"
+      >
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div
+            aria-hidden="true"
+            style="width: 38px; height: 38px; border-radius: 12px; background: #f0f0f2; border: 1px solid var(--cor-borda); display:flex; align-items:center; justify-content:center;"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--cor-acento);">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <path d="M8 12h8"></path>
+              <path d="M12 8v8"></path>
+            </svg>
+          </div>
+          <div>
+            <div style="font-size: 1.25rem; font-weight: 800; letter-spacing: 0.2px;">LanHouse OS</div>
+            <div id="lanhouse-nome" style="color: var(--cor-texto-suave); font-size: 0.98rem;">Carregando...</div>
+          </div>
+        </div>
+        <a href="config.html" class="btn btn-outline" style="text-decoration:none;">
+          <span aria-hidden="true" style="font-weight:900;">⚙</span>
+          Configurações
+        </a>
+      </header>
+
+      <!-- SEÇÃO: Cards -->
+      <main>
+        <div class="grid-2" style="margin-bottom: 18px;">
+          <section class="card card-modulo" style="padding: 18px;">
+            <div class="card-icone" aria-hidden="true" style="font-size: 26px; line-height: 1; color: var(--cor-acento); margin-bottom: 10px;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--cor-acento);">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>
+                <path d="M14 2v6h6"></path>
+                <path d="M8 13h8"></path>
+                <path d="M8 17h6"></path>
+              </svg>
+            </div>
+            <h3 style="font-size: 1.05rem; margin-bottom: 6px;">Gerador de Currículo</h3>
+            <p style="color: var(--cor-texto-suave); margin-bottom: 12px; font-size: 0.95rem;">Crie e imprima um currículo profissional em A4.</p>
+            <a href="modulos/curriculo.html" class="btn btn-primario" style="display:inline-flex;">Abrir</a>
+          </section>
+
+          <section class="card card-modulo" style="padding: 18px;">
+            <div class="card-icone" aria-hidden="true" style="font-size: 26px; line-height: 1; color: var(--cor-acento); margin-bottom: 10px;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--cor-acento);">
+                <path d="M7 10h10"></path>
+                <path d="M7 14h6"></path>
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"></path>
+                <path d="M14 2v6h6"></path>
+              </svg>
+            </div>
+            <h3 style="font-size: 1.05rem; margin-bottom: 6px;">Gerador de Recibo</h3>
+            <p style="color: var(--cor-texto-suave); margin-bottom: 12px; font-size: 0.95rem;">Gere recibos e imprima com layout limpo.</p>
+            <a href="modulos/recibo.html" class="btn btn-primario" style="display:inline-flex;">Abrir</a>
+          </section>
+        </div>
+
+        <!-- SEÇÃO: Card de configurações (especial, foco no canto) -->
+        <div style="display:flex; justify-content:flex-end;">
+          <a href="config.html" class="card no-print" style="padding: 14px 16px; max-width: 340px; width: 100%; text-decoration:none;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width: 36px; height: 36px; border-radius: 12px; border:1px solid var(--cor-borda); background: #f0f0f2; display:flex; align-items:center; justify-content:center; color: var(--cor-acento); font-weight:900;">
+                ⚙
+              </div>
+              <div>
+                <div style="font-weight: 900;">Configurações</div>
+                <div style="color: var(--cor-texto-suave); font-size: 0.95rem;">Salve dados da Lan House uma vez.</div>
+              </div>
+            </div>
+          </a>
+        </div>
+      </main>
+
+      <!-- SEÇÃO: Rodapé -->
+      <footer class="no-print" style="margin-top: 18px; color: var(--cor-texto-suave); text-align:center; font-size:0.95rem;">
+        LanHouse OS v1.0 — Sistema Offline
+      </footer>
+    </div>
+
+    <script>
+// LanHouseStorage: utilitário 100% local para LocalStorage
+// (sem dependências externas)
+const LanHouseStorage = (() => {
+  const KEY_CONFIG = "lanhouse_config";
+
+  const defaults = {
+    nomeLanHouse: "Lan House",
+    endereco: "",
+    telefone: "",
+    cpfCnpj: "",
+    nomeAtendente: "",
+    corTema: "#e94560",
+  };
+
+  function safeParseJSON(value) {
+    try {
+      return JSON.parse(value);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function carregarConfig() {
+    const raw = localStorage.getItem(KEY_CONFIG);
+    if (!raw) return { ...defaults };
+    const parsed = safeParseJSON(raw);
+    if (!parsed || typeof parsed !== "object") return { ...defaults };
+    return { ...defaults, ...parsed };
+  }
+
+  function salvarConfig(dados) {
+    const payload = { ...defaults, ...(dados && typeof dados === "object" ? dados : {}) };
+    try {
+      localStorage.setItem(KEY_CONFIG, JSON.stringify(payload));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function salvar(chave, dados) {
+    if (!chave) return false;
+    try {
+      localStorage.setItem(chave, JSON.stringify(dados));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function carregar(chave) {
+    if (!chave) return null;
+    const raw = localStorage.getItem(chave);
+    if (!raw) return null;
+    const parsed = safeParseJSON(raw);
+    return parsed === null ? null : parsed;
+  }
+
+  function listar(prefixo) {
+    const resultados = [];
+    const p = String(prefixo || "");
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(p)) continue;
+
+      const raw = localStorage.getItem(k);
+      const parsed = safeParseJSON(raw);
+      resultados.push({
+        chave: k,
+        dados: parsed,
+      });
+    }
+    return resultados;
+  }
+
+  function remover(chave) {
+    if (!chave) return false;
+    try {
+      localStorage.removeItem(chave);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  return {
+    defaults,
+    carregarConfig,
+    salvarConfig,
+    salvar,
+    carregar,
+    listar,
+    remover,
+  };
+})();
+    </script>
+    <script>
+      // --- SEÇÃO: Atualização do nome (em tempo real) ---
+      const elNome = document.getElementById("lanhouse-nome");
+
+      function atualizarUI() {
+        const cfg = LanHouseStorage.carregarConfig();
+        const nome = (cfg && cfg.nomeLanHouse) ? cfg.nomeLanHouse : LanHouseStorage.defaults.nomeLanHouse;
+        elNome.textContent = nome;
+
+        // Mantém a cor de destaque sincronizada com a config.
+        if (cfg && cfg.corTema) {
+          document.documentElement.style.setProperty("--cor-acento", cfg.corTema);
+        }
+      }
+
+      atualizarUI();
+      window.addEventListener("storage", atualizarUI);
+
+      // Em alguns cenários (mesma aba), `storage` não dispara quando salvamos.
+      // Um polling leve ajuda a deixar o header realmente "em tempo real".
+      setInterval(atualizarUI, 1500);
+    </script>
+  </body>
+</html>
+

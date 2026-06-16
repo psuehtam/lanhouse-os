@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerador de Recibos</title>
+    <script>
+// LanHouseStorage: utilitário 100% local para LocalStorage
+// (sem dependências externas)
+const LanHouseStorage = (() => {
+  const KEY_CONFIG = "lanhouse_config";
+
+  const defaults = {
+    nomeLanHouse: "Lan House",
+    endereco: "",
+    telefone: "",
+    cpfCnpj: "",
+    nomeAtendente: "",
+    corTema: "#e94560",
+  };
+
+  function safeParseJSON(value) {
+    try {
+      return JSON.parse(value);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function carregarConfig() {
+    const raw = localStorage.getItem(KEY_CONFIG);
+    if (!raw) return { ...defaults };
+    const parsed = safeParseJSON(raw);
+    if (!parsed || typeof parsed !== "object") return { ...defaults };
+    return { ...defaults, ...parsed };
+  }
+
+  function salvarConfig(dados) {
+    const payload = { ...defaults, ...(dados && typeof dados === "object" ? dados : {}) };
+    try {
+      localStorage.setItem(KEY_CONFIG, JSON.stringify(payload));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function salvar(chave, dados) {
+    if (!chave) return false;
+    try {
+      localStorage.setItem(chave, JSON.stringify(dados));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function carregar(chave) {
+    if (!chave) return null;
+    const raw = localStorage.getItem(chave);
+    if (!raw) return null;
+    const parsed = safeParseJSON(raw);
+    return parsed === null ? null : parsed;
+  }
+
+  function listar(prefixo) {
+    const resultados = [];
+    const p = String(prefixo || "");
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(p)) continue;
+
+      const raw = localStorage.getItem(k);
+      const parsed = safeParseJSON(raw);
+      resultados.push({
+        chave: k,
+        dados: parsed,
+      });
+    }
+    return resultados;
+  }
+
+  function remover(chave) {
+    if (!chave) return false;
+    try {
+      localStorage.removeItem(chave);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  return {
+    defaults,
+    carregarConfig,
+    salvarConfig,
+    salvar,
+    carregar,
+    listar,
+    remover,
+  };
+})();
+    </script>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-focus: rgba(233, 69, 96, 0.35);
+      --text-primary: #1a1a2e;
+      --text-secondary: #5c5c6e;
+      --text-muted: #71717a;
+      --accent: #e94560;
+      --accent-hover: #d83f5a;
+      --btn-export: #e94560;
+      --btn-print: #ffffff;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.07);
+      --shadow-receipt: 0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.09);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* ──────────────── LAYOUT ──────────────── */
+
+    .app {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app-header {
+      grid-column: 1 / -1;
+      padding: 20px 32px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .btn-back:hover {
+      background: var(--surface);
+      border-color: var(--border-focus);
+      color: var(--text-primary);
+    }
+
+    .btn-back svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    .app-header .logo {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .app-header .logo svg {
+      width: 18px;
+      height: 18px;
+      fill: #fff;
+    }
+
+    .app-header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.2px;
+    }
+
+    .app-header p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    /* ──────────────── SIDEBAR (CONTROLS) ──────────────── */
+
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 28px 24px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+      overscroll-behavior: contain;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: #f8f9fa;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      resize: none;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: var(--border-focus);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px rgba(63,63,70,0.08);
+    }
+
+    .field textarea {
+      min-height: 72px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ──────────────── BUTTONS ──────────────── */
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.1s;
+      width: 100%;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    .btn-primary {
+      background: var(--btn-export);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-outline {
+      background: var(--surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg);
+      border-color: var(--border-focus);
+    }
+
+    /* ──────────────── PREVIEW AREA ──────────────── */
+
+    .preview-area {
+      padding: 40px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 0;
+      overscroll-behavior: contain;
+    }
+
+    /* ──────────────── RECEIPT DOCUMENT ──────────────── */
+
+    #receipt {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-receipt);
+      width: 100%;
+      max-width: 640px;
+      padding: 48px 52px;
+      min-height: 480px;
+      position: relative;
+      border: 1px solid var(--border);
+    }
+
+    #receipt.pdf-exporting {
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+    }
+
+    .receipt-title-row {
+      text-align: center;
+    }
+
+    .receipt-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-primary);
+    }
+
+    .receipt-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 36px;
+    }
+
+    .receipt-meta {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .receipt-meta .meta-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .receipt-meta .meta-value {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .receipt-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    .receipt-amount-block {
+      text-align: center;
+      padding: 28px 0 24px;
+    }
+
+    .receipt-amount-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .receipt-amount-value {
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      color: var(--text-primary);
+    }
+
+    .receipt-amount-written {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .receipt-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 8px;
+    }
+
+    .receipt-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .receipt-field .r-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .receipt-field .r-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+      min-height: 20px;
+    }
+
+    .receipt-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .receipt-footer {
+      margin-top: 48px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .receipt-signature {
+      text-align: center;
+      min-width: 200px;
+    }
+
+    .receipt-signature .sig-line {
+      border-top: 1px solid var(--text-primary);
+      padding-top: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .receipt-signature .sig-cpf {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .receipt-badge {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ──────────────── LOGO NO RECIBO ──────────────── */
+
+    .receipt-top-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      min-height: 0;
+    }
+
+    #receipt-logo-wrap {
+      max-width: 260px;
+      max-height: 104px;
+      overflow: hidden;
+      line-height: 0;
+    }
+
+    #receipt-logo-wrap svg {
+      height: 104px;
+      width: auto;
+      display: block;
+    }
+
+    #receipt-logo-wrap img {
+      height: 104px;
+      width: auto;
+      max-width: 260px;
+      display: block;
+      object-fit: contain;
+    }
+
+    /* ──────────────── LOGO CONTROLS (SIDEBAR) ──────────────── */
+
+    .logo-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .logo-controls .btn {
+      flex: 1;
+      padding: 7px 10px;
+      font-size: 12.5px;
+    }
+
+    /* ──────────────── TOGGLE BUTTON ──────────────── */
+
+    .field-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .field-label-row label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .toggle-btn:hover {
+      border-color: var(--border-focus);
+      color: var(--text-secondary);
+    }
+
+    .toggle-btn.active {
+      background: var(--text-primary);
+      border-color: var(--text-primary);
+      color: #fff;
+    }
+
+    .toggle-btn .t-icon {
+      font-style: normal;
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    .field input:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* ──────────────── EMPTY STATES ──────────────── */
+
+    .placeholder {
+      color: var(--text-muted);
+      font-weight: 400;
+      font-style: italic;
+    }
+
+    /* ──────────────── RECEIPT SUB-VALUE (CPF/CNPJ) ──────────────── */
+
+    .r-sub {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin-top: 1px;
+    }
+
+    /* ──────────────── RESPONSIVE ──────────────── */
+
+    @media (max-width: 860px) {
+      html, body {
+        overflow: auto;
+      }
+
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+      }
+
+      .app-header p {
+        display: none;
+      }
+
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 20px 16px;
+        gap: 16px;
+        overflow: visible;
+        min-height: auto;
+      }
+
+      .btn-group {
+        flex-direction: row;
+        margin-top: 0;
+      }
+
+      .preview-area {
+        padding: 24px 16px;
+        overflow: visible;
+        min-height: auto;
+      }
+
+      #receipt {
+        padding: 32px 24px;
+      }
+
+      .receipt-amount-value {
+        font-size: 32px;
+      }
+
+      .receipt-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .receipt-field.full {
+        grid-column: 1;
+      }
+    }
+
+    /* ──────────────── PRINT STYLES ──────────────── */
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      /* Mostra apenas o documento (conteúdo do recibo) */
+      body * {
+        visibility: hidden !important;
+      }
+
+      #area-impressao,
+      #area-impressao * {
+        visibility: visible !important;
+      }
+
+      #area-impressao {
+        display: block !important;
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0;
+        padding: 15mm 20mm;
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 11pt;
+        color: #000;
+        background: #fff;
+        /* Garante impressão em preto ao usar CSS vars do modo escuro. */
+        --text-primary: #000;
+        --text-secondary: #000;
+        --text-muted: #000;
+        --surface: #fff;
+        --bg: #fff;
+        --border: #000;
+        --border-focus: #000;
+        --accent: #000;
+        --accent-hover: #000;
+        --btn-export: #000;
+        border: none;
+        border-radius: 0;
+        page-break-inside: avoid;
+      }
+
+      #receipt {
+        padding: 0 !important;
+        max-width: 100%;
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+      }
+
+      .receipt-badge {
+        display: none !important;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── HEADER ── -->
+  <header class="app-header">
+    <a href="../index.html" class="btn-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Voltar
+    </a>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/>
+      </svg>
+    </div>
+    <h1>Gerador de Recibos</h1>
+    <p>Preencha os campos para gerar seu recibo</p>
+  </header>
+
+  <!-- ── SIDEBAR / CONTROLS ── -->
+  <aside class="sidebar">
+    <span class="sidebar-title">Dados do Recibo</span>
+
+    <div class="field-group">
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label-row">
+            <label for="inp-numero">Número do Recibo</label>
+            <button type="button" class="toggle-btn" id="toggle-numero" onclick="toggleSemNumero()">
+              <i class="t-icon">◌</i> Sem número
+            </button>
+          </div>
+          <input id="inp-numero" type="text" placeholder="001" maxlength="20" />
+        </div>
+        <div class="field">
+          <label for="inp-data">Data</label>
+          <input id="inp-data" type="date" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="inp-valor">Valor (R$)</label>
+        <input id="inp-valor" type="text" placeholder="0,00" inputmode="numeric" />
+      </div>
+
+      <div class="field">
+        <div class="field-label-row">
+          <label>Logo do Recibo</label>
+          <button type="button" class="toggle-btn" id="toggle-logo" onclick="toggleLogo()">
+            <i class="t-icon">◌</i> Sem logo
+          </button>
+        </div>
+        <div class="logo-controls">
+          <button type="button" class="btn btn-outline" onclick="$('inp-logo-file').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            Trocar imagem
+          </button>
+          <button type="button" class="btn btn-outline" id="btn-restaurar-logo" onclick="restaurarLogo()" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+            </svg>
+            Restaurar
+          </button>
+        </div>
+        <input type="file" id="inp-logo-file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" style="display:none" />
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="field-group">
+      <div class="field">
+        <div class="field-label-row">
+          <label for="inp-emissor">Emissor</label>
+          <button type="button" class="toggle-btn" onclick="limparEmissor()">
+            <i class="t-icon">✕</i> Limpar
+          </button>
+        </div>
+        <input id="inp-emissor" type="text" placeholder="Nome ou empresa emissora" />
+      </div>
+      <div class="field">
+        <div class="field-label-row">
+          <label for="inp-cpf-emissor">CPF / CNPJ do Emissor</label>
+          <button type="button" class="toggle-btn" id="toggle-cpf-emissor" onclick="toggleCpf('emissor')">
+            <i class="t-icon">◌</i> Sem CPF/CNPJ
+          </button>
+        </div>
+        <input id="inp-cpf-emissor" type="text" placeholder="000.000.000-00" inputmode="numeric" maxlength="18" />
+      </div>
+
+      <div class="field">
+        <label for="inp-pagador">Pagador</label>
+        <input id="inp-pagador" type="text" placeholder="Nome do cliente / pagador" />
+      </div>
+      <div class="field">
+        <div class="field-label-row">
+          <label for="inp-cpf-pagador">CPF / CNPJ do Pagador</label>
+          <button type="button" class="toggle-btn" id="toggle-cpf-pagador" onclick="toggleCpf('pagador')">
+            <i class="t-icon">◌</i> Sem CPF/CNPJ
+          </button>
+        </div>
+        <input id="inp-cpf-pagador" type="text" placeholder="000.000.000-00" inputmode="numeric" maxlength="18" />
+      </div>
+
+      <div class="field">
+        <label for="inp-descricao">Descrição / Referente a</label>
+        <textarea id="inp-descricao" placeholder="Descreva o serviço ou produto referente ao pagamento…"></textarea>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="exportarPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Exportar PDF
+      </button>
+      <button class="btn btn-outline" onclick="window.print()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Imprimir
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── PREVIEW AREA ── -->
+  <main class="preview-area">
+    <div id="area-impressao">
+      <div id="receipt">
+
+      <div class="receipt-title-row">
+        <div class="receipt-title">RECIBO</div>
+      </div>
+
+      <div class="receipt-top">
+        <div class="receipt-top-left">
+          <div id="receipt-logo-wrap"></div>
+        </div>
+        <div class="receipt-meta">
+          <span class="meta-label" id="meta-label-numero">Nº</span>
+          <span class="meta-value" id="out-numero"><span class="placeholder">—</span></span>
+          <span class="meta-label" style="margin-top:10px;">Data</span>
+          <span class="meta-value" id="out-data"><span class="placeholder">—</span></span>
+        </div>
+      </div>
+
+      <div class="receipt-divider"></div>
+
+      <div class="receipt-amount-block">
+        <div class="receipt-amount-label">Valor Recebido</div>
+        <div class="receipt-amount-value" id="out-valor">R$ —</div>
+        <div class="receipt-amount-written" id="out-valor-extenso"></div>
+      </div>
+
+      <div class="receipt-divider"></div>
+
+      <div class="receipt-grid">
+        <div class="receipt-field">
+          <span class="r-label">Emissor</span>
+          <span class="r-value" id="out-emissor"><span class="placeholder">—</span></span>
+          <span class="r-sub" id="out-cpf-emissor"></span>
+        </div>
+        <div class="receipt-field">
+          <span class="r-label">Pagador</span>
+          <span class="r-value" id="out-pagador"><span class="placeholder">—</span></span>
+          <span class="r-sub" id="out-cpf-pagador"></span>
+        </div>
+        <div class="receipt-field full">
+          <span class="r-label">Referente a</span>
+          <span class="r-value" id="out-descricao"><span class="placeholder">—</span></span>
+        </div>
+      </div>
+
+      <div class="receipt-footer">
+        <div class="receipt-signature">
+          <div class="sig-line" id="out-assinatura">Assinatura do Emissor</div>
+          <div class="sig-cpf" id="out-assinatura-cpf"></div>
+        </div>
+      </div>
+
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  /* ── LOGO PADRÃO (PNG) ── */
+
+  const LOGO_PADRAO_IMG_SRC = "../assets/img/logo_adrenalina.png";
+  const DEFAULT_LOGO_MARKUP = '<img src="' + LOGO_PADRAO_IMG_SRC + '" alt="" style="height:104px;width:auto;max-width:260px;display:block;object-fit:contain;" />';
+  let currentLogo = DEFAULT_LOGO_MARKUP;
+  /* ── UTILITIES ── */
+
+  function $(id) { return document.getElementById(id); }
+
+  function setText(id, val, fallback) {
+    const el = $(id);
+    if (val && val.toString().trim()) {
+      el.innerHTML = escHtml(val);
+    } else {
+      el.innerHTML = `<span class="placeholder">${fallback || '—'}</span>`;
+    }
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* ── CURRENCY MASK ── */
+
+  function formatCurrency(raw) {
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) return '';
+    const cents = parseInt(digits, 10);
+    return (cents / 100).toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  $('inp-valor').addEventListener('input', function () {
+    const pos = this.selectionStart;
+    const old = this.value;
+    this.value = formatCurrency(this.value);
+    // Keep cursor near end when typing
+    const diff = this.value.length - old.length;
+    try { this.setSelectionRange(pos + diff, pos + diff); } catch(_) {}
+    update();
+  });
+
+  /* ── DATE FORMAT ── */
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  /* ── NÚMERO POR EXTENSO (BRL) ── */
+
+  const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove',
+    'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+  const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+  const centenas = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+
+  function numGrupo(n) {
+    if (n === 100) return 'cem';
+    let s = '';
+    const c = Math.floor(n / 100);
+    const r = n % 100;
+    if (c > 0) s += centenas[c];
+    if (c > 0 && r > 0) s += ' e ';
+    if (r < 20) {
+      s += unidades[r];
+    } else {
+      const d = Math.floor(r / 10);
+      const u = r % 10;
+      s += dezenas[d];
+      if (u > 0) s += ' e ' + unidades[u];
+    }
+    return s;
+  }
+
+  function numExtenso(valor) {
+    if (isNaN(valor) || valor < 0) return '';
+    valor = Math.round(valor * 100) / 100;
+    const reais = Math.floor(valor);
+    const centavos = Math.round((valor - reais) * 100);
+
+    let partes = [];
+
+    if (reais === 0 && centavos === 0) return 'zero reais';
+
+    if (reais > 0) {
+      const bilhoes = Math.floor(reais / 1e9);
+      const milhoes = Math.floor((reais % 1e9) / 1e6);
+      const milhares = Math.floor((reais % 1e6) / 1e3);
+      const resto = reais % 1e3;
+
+      if (bilhoes > 0) partes.push(numGrupo(bilhoes) + (bilhoes === 1 ? ' bilhão' : ' bilhões'));
+      if (milhoes > 0) partes.push(numGrupo(milhoes) + (milhoes === 1 ? ' milhão' : ' milhões'));
+      if (milhares > 0) partes.push(numGrupo(milhares) + ' mil');
+      if (resto > 0) partes.push(numGrupo(resto));
+
+      const strReais = partes.join(' e ') + (reais === 1 ? ' real' : ' reais');
+      partes = [strReais];
+    }
+
+    if (centavos > 0) {
+      const strCentavos = numGrupo(centavos) + (centavos === 1 ? ' centavo' : ' centavos');
+      partes.push(strCentavos);
+    }
+
+    return partes.join(' e ');
+  }
+
+  /* ── CPF / CNPJ MASK ── */
+
+  function maskCpfCnpj(val) {
+    const d = val.replace(/\D/g, '').slice(0, 14);
+    if (d.length <= 11) {
+      return d.replace(/(\d{3})(\d)/, '$1.$2')
+              .replace(/(\d{3})(\d)/, '$1.$2')
+              .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+    return d.replace(/(\d{2})(\d)/, '$1.$2')
+             .replace(/(\d{3})(\d)/, '$1.$2')
+             .replace(/(\d{3})(\d)/, '$1/$2')
+             .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+  }
+
+  ['inp-cpf-emissor', 'inp-cpf-pagador'].forEach(id => {
+    $(id).addEventListener('input', function () {
+      const pos = this.selectionStart;
+      const old = this.value;
+      this.value = maskCpfCnpj(this.value);
+      const diff = this.value.length - old.length;
+      try { this.setSelectionRange(pos + diff, pos + diff); } catch(_) {}
+      update();
+    });
+  });
+
+  /* ── TOGGLE STATE ── */
+
+  const state = { semNumero: false, semCpfEmissor: false, semCpfPagador: false, semLogo: false };
+
+  function toggleSemNumero() {
+    state.semNumero = !state.semNumero;
+    const btn = $('toggle-numero');
+    const inp = $('inp-numero');
+    btn.classList.toggle('active', state.semNumero);
+    btn.querySelector('.t-icon').textContent = state.semNumero ? '✓' : '◌';
+    inp.disabled = state.semNumero;
+    update();
+  }
+
+  function toggleLogo() {
+    state.semLogo = !state.semLogo;
+    const btn = $('toggle-logo');
+    btn.classList.toggle('active', state.semLogo);
+    btn.querySelector('.t-icon').textContent = state.semLogo ? '✓' : '◌';
+    update();
+  }
+
+  function restaurarLogo() {
+    $('btn-restaurar-logo').style.display = 'none';
+    $('inp-logo-file').value = '';
+    currentLogo = DEFAULT_LOGO_MARKUP;
+    var logoWrap = $('receipt-logo-wrap');
+    logoWrap.dataset.loaded = '';
+    update();
+  }
+
+  $('inp-logo-file').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (ev) {
+      currentLogo = `<img src="${ev.target.result}" style="height:104px;width:auto;max-width:260px;display:block;object-fit:contain;" />`;
+      $('btn-restaurar-logo').style.display = '';
+      update();
+    };
+    reader.readAsDataURL(file);
+    this.value = '';
+  });
+
+  function limparEmissor() {
+    $('inp-emissor').value = '';
+    $('inp-cpf-emissor').value = '';
+    update();
+  }
+
+  function toggleCpf(lado) {
+    const key = lado === 'emissor' ? 'semCpfEmissor' : 'semCpfPagador';
+    state[key] = !state[key];
+    const btn = $('toggle-cpf-' + lado);
+    const inp = $('inp-cpf-' + lado);
+    btn.classList.toggle('active', state[key]);
+    btn.querySelector('.t-icon').textContent = state[key] ? '✓' : '◌';
+    inp.disabled = state[key];
+    update();
+  }
+
+  /* ── LIVE UPDATE ── */
+
+  function update() {
+    const numero    = $('inp-numero').value.trim();
+    const data      = $('inp-data').value;
+    const valor     = $('inp-valor').value.trim();
+    const emissor   = $('inp-emissor').value.trim();
+    const pagador   = $('inp-pagador').value.trim();
+    const descricao = $('inp-descricao').value.trim();
+    const cpfEmissor = $('inp-cpf-emissor').value.trim();
+    const cpfPagador = $('inp-cpf-pagador').value.trim();
+
+    // Logo
+    const logoWrap = $('receipt-logo-wrap');
+    if (state.semLogo) {
+      logoWrap.style.display = 'none';
+    } else {
+      logoWrap.style.display = '';
+      logoWrap.innerHTML = currentLogo;
+    }
+
+    // Número
+    const metaNumero = $('meta-label-numero');
+    const outNumero  = $('out-numero');
+    if (state.semNumero) {
+      metaNumero.style.display = 'none';
+      outNumero.style.display  = 'none';
+    } else {
+      metaNumero.style.display = '';
+      outNumero.style.display  = '';
+      setText('out-numero', numero, '—');
+    }
+
+    setText('out-data', data ? formatDate(data) : '', '—');
+
+    // Amount
+    if (valor) {
+      $('out-valor').textContent = 'R$ ' + valor;
+      const numerico = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
+      const extenso = numExtenso(numerico);
+      $('out-valor-extenso').textContent = extenso ? '(' + extenso.charAt(0).toUpperCase() + extenso.slice(1) + ')' : '';
+    } else {
+      $('out-valor').textContent = 'R$ —';
+      $('out-valor-extenso').textContent = '';
+    }
+
+    setText('out-emissor', emissor, '—');
+    $('out-cpf-emissor').textContent = (!state.semCpfEmissor && cpfEmissor) ? cpfEmissor : '';
+
+    setText('out-pagador', pagador, '—');
+    $('out-cpf-pagador').textContent = (!state.semCpfPagador && cpfPagador) ? cpfPagador : '';
+
+    // Description: preserve line breaks
+    if (descricao) {
+      $('out-descricao').innerHTML = escHtml(descricao).replace(/\n/g, '<br>');
+    } else {
+      $('out-descricao').innerHTML = '<span class="placeholder">—</span>';
+    }
+
+    // Signature label
+    $('out-assinatura').textContent = emissor || 'Assinatura do Emissor';
+    $('out-assinatura-cpf').textContent = (!state.semCpfEmissor && cpfEmissor) ? cpfEmissor : '';
+  }
+
+  /* ── BIND ALL INPUTS ── */
+
+  ['inp-numero', 'inp-data', 'inp-emissor', 'inp-pagador', 'inp-descricao'].forEach(id => {
+    $(id).addEventListener('input', update);
+  });
+
+  /* ── EXPORT PDF ── */
+
+  function exportarPDF() {
+    // No modo offline, o "PDF" é gerado via `Salvar como PDF` na janela de impressão.
+    window.print();
+  }
+
+  /* ── SET DEFAULT DATE TO TODAY ── */
+
+  (function init() {
+    const today = new Date();
+    const iso = today.toISOString().split('T')[0];
+    $('inp-data').value = iso;
+    $('inp-numero').value = '001';
+    const cfgRaw = (function getCfgRaw() {
+      try {
+        return localStorage.getItem("lanhouse_config");
+      } catch (_) {
+        return null;
+      }
+    })();
+    const cfg = cfgRaw ? LanHouseStorage.carregarConfig() : null;
+
+    // Aplica corTema do config para manter consistencia visual com index/config.
+    // (usa vars CSS do próprio módulo: --accent, --btn-export, --border-focus, etc.)
+    (function aplicarTema() {
+      const tema = (cfg && cfg.corTema) ? String(cfg.corTema).trim() : "";
+      if (!tema) return;
+
+      function hexToRgba(hex, alpha) {
+        let h = String(hex || "").trim().replace(/^#/, "");
+        if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+        if (h.length !== 6) return `rgba(233, 69, 96, ${alpha})`;
+
+        const r = parseInt(h.slice(0, 2), 16);
+        const g = parseInt(h.slice(2, 4), 16);
+        const b = parseInt(h.slice(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+
+      const alpha = 0.35;
+      const rgba = hexToRgba(tema, alpha);
+
+      document.documentElement.style.setProperty("--accent", tema);
+      document.documentElement.style.setProperty("--accent-hover", tema);
+      document.documentElement.style.setProperty("--btn-export", tema);
+      document.documentElement.style.setProperty("--border-focus", rgba);
+    })();
+
+    // Pré-preenche dados do emissor apenas quando os campos estiverem vazios.
+    if (!($('inp-emissor').value || "").trim()) {
+      $('inp-emissor').value = (cfg && cfg.nomeLanHouse) ? cfg.nomeLanHouse : 'Adrenalina Lan House & Informática';
+    }
+    if (!($('inp-cpf-emissor').value || "").trim()) {
+      $('inp-cpf-emissor').value = (cfg && cfg.cpfCnpj) ? cfg.cpfCnpj : '09.389.937/0001-75';
+    }
+
+    // Logo já inicia como imagem padrão.
+    update();
+  })();
+</script>
+
+</body>
+</html>
