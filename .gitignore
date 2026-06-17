@@ -1,0 +1,24 @@
+# Dependências
+node_modules/
+
+# Sistemas operacionais
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editores
+.vscode/settings.json
+.idea/
+*.suo
+*.user
+
+# Temporários de build
+*.tmp
+*.bak
+
+# Arquivo gerado — não commitar se quiser manter fonte limpa
+# modulos/copel/doc.html

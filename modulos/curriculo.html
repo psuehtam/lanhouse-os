@@ -389,6 +389,25 @@
       text-align: justify;
     }
 
+    .cv-nome-vazio {
+      min-height: 1.1em;
+      margin-bottom: 14pt;
+    }
+
+    .cv-valor-vazio {
+      display: inline-block;
+      min-width: 10em;
+      border-bottom: 1px solid #d0d0d4;
+    }
+
+    .cv-dado-vazio .cv-dado-label {
+      color: #000;
+    }
+
+    .cv-secao-vazia .cv-secao-corpo-vazio {
+      min-height: 4pt;
+    }
+
     .alerta-info,
     .alerta-sucesso,
     .alerta-erro {
@@ -562,6 +581,13 @@
 
       .cv-link {
         color: #0563c1 !important;
+      }
+
+      .cv-nome-vazio,
+      .cv-dado-vazio,
+      .cv-secao-vazia,
+      .cv-secao-corpo-vazio {
+        display: none !important;
       }
     }
     </style>
@@ -970,23 +996,33 @@ const LanHouseStorage = (() => {
           .join("");
       }
 
-      function renderSecao(titulo, conteudo) {
-        if (!String(conteudo || "").trim()) return "";
+      function renderSecao(titulo, conteudo, mostrarEstrutura) {
+        const vazio = !String(conteudo || "").trim();
+        if (vazio && !mostrarEstrutura) return "";
+        if (vazio) {
+          return `<div class="cv-secao cv-secao-vazia"><div class="cv-secao-titulo">${escapeHtml(titulo)}</div><div class="cv-secao-corpo cv-secao-corpo-vazio"></div></div>`;
+        }
         return `<div class="cv-secao"><div class="cv-secao-titulo">${escapeHtml(titulo)}</div><div class="cv-secao-corpo">${conteudo}</div></div>`;
       }
 
       function renderDado(rotulo, valor, opts = {}) {
+        const mostrarEstrutura = opts.mostrarEstrutura === true;
         const v = String(valor || "").trim();
-        if (!v) return "";
+        if (!v && !mostrarEstrutura) return "";
 
-        const html = escapeHtml(v);
+        const cls = v ? "" : " cv-dado-vazio";
         let valorHtml;
-        if (opts.email) {
-          valorHtml = `<a class="cv-link" href="mailto:${html}">${html}</a>`;
+        if (v) {
+          const html = escapeHtml(v);
+          if (opts.email) {
+            valorHtml = `<a class="cv-link" href="mailto:${html}">${html}</a>`;
+          } else {
+            valorHtml = `<span>${html}</span>`;
+          }
         } else {
-          valorHtml = `<span>${html}</span>`;
+          valorHtml = `<span class="cv-valor-vazio"></span>`;
         }
-        return `<div class="cv-dado"><span class="cv-dado-label">${escapeHtml(rotulo)}:</span> ${valorHtml}</div>`;
+        return `<div class="cv-dado${cls}"><span class="cv-dado-label">${escapeHtml(rotulo)}:</span> ${valorHtml}</div>`;
       }
 
       function renderExperiencia(item) {
@@ -1066,41 +1102,56 @@ const LanHouseStorage = (() => {
         return { personal, objetivo, escolaridade, cursos, caracteristicas, experiencias };
       }
 
-      function atualizarPreview() {
+      function atualizarPreview(opcoes = {}) {
+        const mostrarEstrutura = opcoes.apenasPreenchido !== true;
         const state = obterEstadoDoFormulario();
         const p = state.personal;
+        const dadoOpts = { mostrarEstrutura };
         let html = "";
 
         if (p.nomeCompleto?.trim()) {
           html += `<div class="cv-nome">${escapeHtml(p.nomeCompleto.trim())}</div>`;
+        } else if (mostrarEstrutura) {
+          html += `<div class="cv-nome cv-nome-vazio" aria-hidden="true"></div>`;
         }
 
         let dadosPessoais = "";
-        dadosPessoais += renderDado("Data de Nascimento", p.dataNascimento);
-        dadosPessoais += renderDado("Estado Civil", p.estadoCivil);
-        dadosPessoais += renderDado("Endereço", p.endereco);
-        dadosPessoais += renderDado("Cidade", p.cidadeUf);
-        dadosPessoais += renderDado("Telefone", p.telefone);
-        dadosPessoais += renderDado("E-mail", p.email, { email: true });
-        dadosPessoais += renderDado("CNH", p.cnh);
-        html += renderSecao("Dados pessoais:", dadosPessoais);
+        dadosPessoais += renderDado("Data de Nascimento", p.dataNascimento, dadoOpts);
+        dadosPessoais += renderDado("Estado Civil", p.estadoCivil, dadoOpts);
+        dadosPessoais += renderDado("Endereço", p.endereco, dadoOpts);
+        dadosPessoais += renderDado("Cidade", p.cidadeUf, dadoOpts);
+        dadosPessoais += renderDado("Telefone", p.telefone, dadoOpts);
+        dadosPessoais += renderDado("E-mail", p.email, { ...dadoOpts, email: true });
+        dadosPessoais += renderDado("CNH", p.cnh, dadoOpts);
+        html += renderSecao("Dados pessoais:", dadosPessoais, mostrarEstrutura);
 
-        html += renderSecao("Objetivo:", renderListaItens(splitLinhas(state.objetivo)));
-        html += renderSecao("Escolaridade:", renderListaItens(splitLinhas(state.escolaridade)));
-        html += renderSecao("Cursos:", renderListaItens(splitLinhas(state.cursos)));
+        html += renderSecao("Objetivo:", renderListaItens(splitLinhas(state.objetivo)), mostrarEstrutura);
+        html += renderSecao("Escolaridade:", renderListaItens(splitLinhas(state.escolaridade)), mostrarEstrutura);
+        html += renderSecao("Cursos:", renderListaItens(splitLinhas(state.cursos)), mostrarEstrutura);
 
         const atividades = state.experiencias
           .map((item) => renderExperiencia(item))
           .join("");
-        html += renderSecao("Atividades Profissionais:", atividades);
+        html += renderSecao("Atividades Profissionais:", atividades, mostrarEstrutura);
 
         const carac = renderListaItens(splitLinhas(state.caracteristicas));
         html += renderSecao(
           "Características Pessoais:",
-          carac ? `<div class="cv-caracteristicas">${carac}</div>` : ""
+          carac ? `<div class="cv-caracteristicas">${carac}</div>` : "",
+          mostrarEstrutura
         );
 
         $("prev-conteudo").innerHTML = html;
+      }
+
+      let htmlPreviewNormal = null;
+
+      function restaurarPreviewAposImpressao() {
+        if (htmlPreviewNormal !== null) {
+          $("prev-conteudo").innerHTML = htmlPreviewNormal;
+          htmlPreviewNormal = null;
+        }
+        window.removeEventListener("afterprint", restaurarPreviewAposImpressao);
       }
 
       // --- SEÇÃO: atualização via delegação de eventos ---
@@ -1260,14 +1311,23 @@ const LanHouseStorage = (() => {
         const tituloOriginal = document.title;
         document.title = tituloArquivoCurriculo();
 
+        htmlPreviewNormal = $("prev-conteudo").innerHTML;
+        atualizarPreview({ apenasPreenchido: true });
+
         const restaurarTitulo = () => {
           document.title = tituloOriginal;
           window.removeEventListener("afterprint", restaurarTitulo);
         };
-        window.addEventListener("afterprint", restaurarTitulo);
-        setTimeout(restaurarTitulo, 2000);
 
-        window.print();
+        const finalizarImpressao = () => {
+          restaurarPreviewAposImpressao();
+          restaurarTitulo();
+        };
+
+        window.addEventListener("afterprint", finalizarImpressao);
+        setTimeout(finalizarImpressao, 2000);
+
+        requestAnimationFrame(() => window.print());
       });
 
       // Aplica corTema do config (para manter o mesmo destaque visual do dashboard)

@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>COPEL — Fatura de Energia</title>
+    <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-focus: rgba(233, 69, 96, 0.35);
+      --text-primary: #1a1a2e;
+      --text-secondary: #5c5c6e;
+      --text-muted: #71717a;
+      --accent: #e94560;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .app {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      grid-template-rows: auto minmax(0, 1fr);
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app-header {
+      grid-column: 1 / -1;
+      padding: 16px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .app-header h1 { font-size: 1.15rem; font-weight: 700; }
+    .app-header p { font-size: 13px; color: var(--text-muted); margin-left: auto; }
+
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 20px 18px;
+      overflow-y: auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    .field input {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 14px;
+      background: #f8f9fa;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      background: #fff;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .divider { height: 1px; background: var(--border); }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: transparent;
+      color: #fff;
+      width: 100%;
+    }
+
+    .preview-area {
+      padding: 24px;
+      overflow: auto;
+      background: #ebebed;
+      min-height: 0;
+      min-width: 0;
+    }
+
+    .preview-wrap {
+      width: 893px;
+      margin: 0 auto;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.09);
+      overflow: hidden;
+    }
+
+    #frame-doc {
+      display: block;
+      width: 893px;
+      height: 1263px;
+      border: none;
+      background: #fff;
+      overflow: hidden;
+      vertical-align: top;
+    }
+
+    #msg-erro-doc {
+      display: none;
+      padding: 16px;
+      margin: 24px;
+      background: #fff3f3;
+      border: 1px solid #e74c3c;
+      border-radius: 8px;
+      color: #c0392b;
+      font-size: 14px;
+    }
+
+    #msg-erro-doc.visivel { display: block; }
+
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; overflow: auto; height: auto; min-height: 100vh; }
+      html, body { overflow: auto; }
+      .sidebar { max-height: none; border-right: none; border-bottom: 1px solid var(--border); }
+      .field-row { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      .app-header,
+      .sidebar,
+      #msg-erro-doc { display: none !important; }
+      html, body, .app {
+        overflow: hidden !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .preview-area {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #fff !important;
+        overflow: hidden !important;
+      }
+      .preview-wrap {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        overflow: hidden !important;
+      }
+      #frame-doc {
+        width: 210mm !important;
+        height: 297mm !important;
+        min-height: auto !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+    }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-header no-print">
+        <a href="../index.html" class="btn-back">← Voltar</a>
+        <h1>COPEL — Fatura de Energia</h1>
+        <p>Edite os dados e imprima o comprovante</p>
+      </header>
+
+      <aside class="sidebar no-print">
+        <span class="sidebar-title">Titular</span>
+        <div class="field">
+          <label for="inp-nome">Nome</label>
+          <input id="inp-nome" type="text" autocapitalize="characters" style="text-transform:uppercase" />
+        </div>
+        <div class="field">
+          <label for="inp-endereco1">Endereço (linha 1)</label>
+          <input id="inp-endereco1" type="text" />
+        </div>
+        <div class="field">
+          <label for="inp-endereco2">Endereço (linha 2 / bairro)</label>
+          <input id="inp-endereco2" type="text" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="inp-cep">CEP <span id="cep-status" style="font-size:11px;font-weight:400;color:var(--text-muted)"></span></label>
+            <div style="display:flex;gap:6px">
+              <input id="inp-cep" type="text" inputmode="numeric" maxlength="9" style="flex:1;min-width:0" />
+              <button type="button" id="btn-buscar-cep" style="padding:0 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;white-space:nowrap;color:var(--text-secondary)">Buscar</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="inp-cpf">CPF</label>
+            <input id="inp-cpf" type="text" inputmode="numeric" maxlength="14" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="inp-cidade">Cidade</label>
+            <input id="inp-cidade" type="text" />
+          </div>
+          <div class="field">
+            <label for="inp-estado">Estado</label>
+            <input id="inp-estado" type="text" maxlength="2" />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <span class="sidebar-title">Fatura</span>
+        <p class="field-hint">Altere referência ou vencimento para recalcular as datas. Deixe em branco para usar a data atual.</p>
+        <div class="field-row">
+          <div class="field">
+            <label for="inp-ref-mes">Referência (mês/ano)</label>
+            <input id="inp-ref-mes" type="text" inputmode="numeric" maxlength="7" placeholder="MM/AAAA" />
+          </div>
+          <div class="field">
+            <label for="inp-vencimento">Vencimento</label>
+            <input id="inp-vencimento" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="inp-leitura-ant">Leitura anterior (data)</label>
+            <input id="inp-leitura-ant" type="text" readonly />
+          </div>
+          <div class="field">
+            <label for="inp-leitura-atual">Leitura atual (data)</label>
+            <input id="inp-leitura-atual" type="text" readonly />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <span class="sidebar-title">Leituras e valores</span>
+        <div class="field-row">
+          <div class="field">
+            <label for="inp-leitura-ant-num">Medidor anterior</label>
+            <input id="inp-leitura-ant-num" type="text" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label for="inp-leitura-atual-num">Medidor atual</label>
+            <input id="inp-leitura-atual-num" type="text" inputmode="numeric" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="inp-consumo">Consumo (kWh)</label>
+            <input id="inp-consumo" type="text" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label for="inp-valor">Valor total (R$)</label>
+            <input id="inp-valor" type="text" inputmode="decimal" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="inp-unidade">Unidade consumidora</label>
+          <input id="inp-unidade" type="text" inputmode="numeric" />
+        </div>
+
+        <button type="button" id="btn-imprimir" class="btn btn-primary">Imprimir comprovante</button>
+      </aside>
+
+      <main class="preview-area">
+        <p id="msg-erro-doc" class="no-print" role="alert">
+          Não foi possível carregar o comprovante. Verifique se o arquivo <strong>modulos/copel/doc.html</strong> existe.
+        </p>
+        <div class="preview-wrap">
+          <iframe id="frame-doc" title="Fatura COPEL" src="copel/doc.html" scrolling="no"></iframe>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const frame = $("frame-doc");
+      const msgErroDoc = $("msg-erro-doc");
+
+      const defaults = {
+        nome: "GINEI PUPIA",
+        endereco1: "R Joao Palomeque, 128 - Pac One -",
+        endereco2: "Novo Mundo",
+        cep: "81050-040",
+        cidade: "Curitiba",
+        estado: "PR",
+        cpf: "9999999957",
+        leituraAntNum: "7215",
+        leituraAtualNum: "7694",
+        consumo: "479",
+        valor: "461,17",
+        unidade: "43752195",
+      };
+
+      function pad2(n) { return String(n).padStart(2, "0"); }
+
+      function formatarData(d) {
+        return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`;
+      }
+
+      function calcularDatasAutomaticas() {
+        const hoje = new Date();
+        const diasEntreLeituras = 32;
+
+        // Mês de referência: usa o campo se preenchido e válido, senão mês atual
+        const refMesStr = ($("inp-ref-mes") || {}).value || "";
+        let refDate = null;
+        if (/^\d{2}\/\d{4}$/.test(refMesStr.trim())) {
+          const [m, y] = refMesStr.trim().split("/");
+          const t = new Date(+y, +m - 1, 1);
+          if (!isNaN(t.getTime())) refDate = t;
+        }
+        const base = refDate || hoje;
+        const mes = base.getMonth();
+        const ano = base.getFullYear();
+        const refMes = `${pad2(mes + 1)}/${ano}`;
+
+        // Vencimento: usa o campo se preenchido e válido, senão dia 20 do mês seguinte ao ref
+        const vencStr = ($("inp-vencimento") || {}).value || "";
+        let vencimento;
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(vencStr.trim())) {
+          vencimento = vencStr.trim();
+        } else {
+          let vencMes = mes + 1;
+          let vencAno = ano;
+          if (vencMes > 11) { vencMes = 0; vencAno += 1; }
+          vencimento = formatarData(new Date(vencAno, vencMes, 20));
+        }
+
+        // Leitura atual: se ref personalizado, usa último dia do mês (sem ultrapassar hoje)
+        let leituraAtual;
+        if (refDate) {
+          const ultimoDia = new Date(ano, mes + 1, 0);
+          leituraAtual = ultimoDia > hoje ? new Date(hoje) : ultimoDia;
+        } else {
+          leituraAtual = new Date(hoje);
+        }
+
+        const leituraAnterior = new Date(leituraAtual);
+        leituraAnterior.setDate(leituraAnterior.getDate() - diasEntreLeituras);
+
+        const proximaLeitura = new Date(leituraAtual);
+        proximaLeitura.setDate(proximaLeitura.getDate() + 30);
+
+        const emissao = new Date(leituraAtual);
+        emissao.setDate(emissao.getDate() + 2);
+
+        return {
+          refMes,
+          vencimento,
+          leituraAtual: formatarData(leituraAtual),
+          leituraAnterior: formatarData(leituraAnterior),
+          proximaLeitura: formatarData(proximaLeitura),
+          numDias: String(diasEntreLeituras),
+          emissao: formatarData(emissao),
+        };
+      }
+
+      function maskMesAno(v) {
+        const d = String(v || "").replace(/\D/g, "").slice(0, 6);
+        if (d.length <= 2) return d;
+        return `${d.slice(0, 2)}/${d.slice(2)}`;
+      }
+
+      function maskData(v) {
+        const d = String(v || "").replace(/\D/g, "").slice(0, 8);
+        if (d.length <= 2) return d;
+        if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+        return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+      }
+
+      function maskCep(v) {
+        const d = String(v || "").replace(/\D/g, "").slice(0, 8);
+        if (d.length <= 5) return d;
+        return `${d.slice(0, 5)}-${d.slice(5)}`;
+      }
+
+      function maskCpf(v) {
+        const d = String(v || "").replace(/\D/g, "").slice(0, 11);
+        if (d.length < 11) return d;
+        return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+      }
+
+      function maskCpfOculto(v) {
+        const d = String(v || "").replace(/\D/g, "").slice(0, 11);
+        if (d.length < 11) return maskCpf(d);
+        return `***.***.*${d[7]}${d[8]}-${d[9]}${d[10]}`;
+      }
+
+      let _cpfRaw = "";
+
+      function toTitleCase(str) {
+        return str.toLowerCase().replace(/(?:^|\s)\S/g, (c) => c.toUpperCase());
+      }
+
+      async function buscarCep(cep) {
+        const status = $("cep-status");
+        const btn = $("btn-buscar-cep");
+        status.textContent = "buscando...";
+        status.style.color = "var(--text-muted)";
+        btn.disabled = true;
+        try {
+          const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+          if (!r.ok) throw new Error("erro");
+          const d = await r.json();
+          if (d.erro) throw new Error("não encontrado");
+          if (d.logradouro) $("inp-endereco1").value = toTitleCase(d.logradouro);
+          if (d.bairro) $("inp-endereco2").value = toTitleCase(d.bairro);
+          if (d.localidade) $("inp-cidade").value = toTitleCase(d.localidade);
+          if (d.uf) $("inp-estado").value = d.uf.toUpperCase();
+          status.textContent = "✓";
+          status.style.color = "#22c55e";
+          aplicarNoDocumento();
+        } catch (_) {
+          status.textContent = "não encontrado";
+          status.style.color = "#ef4444";
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      function cpfMascaradoFatura(cpf) {
+        const d = String(cpf || "").replace(/\D/g, "");
+        if (d.length < 11) return `CPF: ${cpf}`;
+        return `CPF: ***.***.*${d[7]}${d[8]}-${d[9]}${d[10]}`;
+      }
+
+      function cpfMascaradoBoleto(cpf) {
+        const d = String(cpf || "").replace(/\D/g, "");
+        if (d.length < 11) return cpf;
+        return `***.***.*${d[7]}${d[8]}-${d[9]}${d[10]}`;
+      }
+
+      function formatarValorReais(v) {
+        const n = String(v || "").replace(",", ".").trim();
+        const num = parseFloat(n);
+        if (Number.isNaN(num)) return `R$${v}`;
+        return `R$${num.toFixed(2).replace(".", ",")}`;
+      }
+
+      function formatarValorNum(v) {
+        return String(v || "").replace(".", ",").replace(/[^\d,]/g, "");
+      }
+
+      function obterEstado() {
+        const datas = calcularDatasAutomaticas();
+        const leituraAnt = parseInt($("inp-leitura-ant-num").value, 10) || 0;
+        const leituraAtu = parseInt($("inp-leitura-atual-num").value, 10) || 0;
+        let consumo = $("inp-consumo").value.trim();
+        if (!consumo && leituraAtu > leituraAnt) consumo = String(leituraAtu - leituraAnt);
+
+        return {
+          nome: $("inp-nome").value.trim().toUpperCase(),
+          endereco1: $("inp-endereco1").value.trim(),
+          endereco2: $("inp-endereco2").value.trim(),
+          cep: $("inp-cep").value.trim(),
+          cidade: $("inp-cidade").value.trim(),
+          estado: $("inp-estado").value.trim().toUpperCase(),
+          cpf: _cpfRaw || $("inp-cpf").value.replace(/\D/g, ""),
+          leituraAntNum: $("inp-leitura-ant-num").value.trim(),
+          leituraAtualNum: $("inp-leitura-atual-num").value.trim(),
+          consumo: consumo,
+          valor: formatarValorNum($("inp-valor").value),
+          unidade: $("inp-unidade").value.trim(),
+          ...datas,
+        };
+      }
+
+      function setCampo(doc, campo, texto) {
+        doc.querySelectorAll(`[data-campo="${campo}"]`).forEach((el) => {
+          el.textContent = texto;
+        });
+      }
+
+      function ajustarAlturaPreview() {
+        try {
+          const doc = frame.contentDocument;
+          const pf = doc && doc.getElementById("pf1");
+          if (!pf) return;
+          const altura = Math.ceil(pf.getBoundingClientRect().height) || 1263;
+          frame.style.height = `${altura}px`;
+          const wrap = frame.parentElement;
+          if (wrap) wrap.style.height = `${altura}px`;
+        } catch (_) {}
+      }
+
+      function aplicarNoDocumento() {
+        let doc;
+        try {
+          doc = frame.contentDocument;
+        } catch (_) {
+          msgErroDoc.classList.add("visivel");
+          return;
+        }
+        if (!doc || !doc.querySelector("#pf1")) {
+          msgErroDoc.classList.add("visivel");
+          return;
+        }
+        msgErroDoc.classList.remove("visivel");
+
+        const s = obterEstado();
+        const valorRs = formatarValorReais(s.valor);
+        const boletoEnd = `${s.endereco1} ${s.endereco2} ${s.cidade} - ${s.estado} - CEP ${s.cep}`
+          .replace(/\s+/g, " ")
+          .trim()
+          .toUpperCase();
+
+        setCampo(doc, "nome-linha", `Nome: ${s.nome}`);
+        setCampo(doc, "endereco-linha1", `Endereço: ${s.endereco1}`);
+        setCampo(doc, "endereco-linha2", s.endereco2);
+        setCampo(doc, "cep-linha", `CEP: ${s.cep}`);
+        setCampo(doc, "cidade-linha", `Cidade: ${s.cidade} - Estado: ${s.estado}`);
+        setCampo(doc, "cpf-linha", cpfMascaradoFatura(s.cpf));
+
+        setCampo(doc, "ref-mes", s.refMes);
+        setCampo(doc, "vencimento-meio", s.vencimento);
+        setCampo(doc, "vencimento-boleto", s.vencimento);
+
+        setCampo(doc, "leitura-anterior-data", s.leituraAnterior);
+        setCampo(doc, "leitura-atual-data", s.leituraAtual);
+        setCampo(doc, "proxima-leitura", s.proximaLeitura);
+        setCampo(doc, "num-dias", s.numDias);
+        setCampo(doc, "data-emissao", s.emissao);
+        setCampo(doc, "data-doc-boleto", s.emissao);
+
+        setCampo(doc, "leitura-ant-num", s.leituraAntNum);
+        setCampo(doc, "leitura-atual-num", s.leituraAtualNum);
+        setCampo(doc, "consumo-faturado", s.consumo);
+        setCampo(doc, "unidade-consumidora", s.unidade);
+        setCampo(doc, "unidade-boleto", s.unidade);
+
+        setCampo(doc, "valor-header", valorRs);
+        setCampo(doc, "valor-total-num", formatarValorNum(s.valor));
+        setCampo(doc, "valor-boleto1", valorRs);
+        setCampo(doc, "valor-boleto2", valorRs);
+
+        setCampo(doc, "boleto-nome", s.nome.toUpperCase());
+        setCampo(doc, "boleto-nome2", s.nome.toUpperCase());
+        setCampo(doc, "boleto-cpf", cpfMascaradoBoleto(s.cpf));
+        setCampo(doc, "boleto-cpf2", cpfMascaradoBoleto(s.cpf));
+        setCampo(doc, "boleto-endereco", boletoEnd);
+
+        if (!$("inp-ref-mes").value.trim()) $("inp-ref-mes").value = s.refMes;
+        if (!$("inp-vencimento").value.trim()) $("inp-vencimento").value = s.vencimento;
+        $("inp-leitura-ant").value = s.leituraAnterior;
+        $("inp-leitura-atual").value = s.leituraAtual;
+        if (s.consumo && !$("inp-consumo").value.trim()) $("inp-consumo").value = s.consumo;
+        ajustarAlturaPreview();
+      }
+
+      function preencherFormulario() {
+        $("inp-nome").value = defaults.nome.toUpperCase();
+        $("inp-endereco1").value = defaults.endereco1;
+        $("inp-endereco2").value = defaults.endereco2;
+        $("inp-cep").value = defaults.cep;
+        $("inp-cidade").value = defaults.cidade;
+        $("inp-estado").value = defaults.estado;
+        _cpfRaw = String(defaults.cpf).replace(/\D/g, "").slice(0, 11);
+        $("inp-cpf").value = maskCpfOculto(_cpfRaw);
+        $("inp-leitura-ant-num").value = defaults.leituraAntNum;
+        $("inp-leitura-atual-num").value = defaults.leituraAtualNum;
+        $("inp-consumo").value = defaults.consumo;
+        $("inp-valor").value = defaults.valor;
+        $("inp-unidade").value = defaults.unidade;
+      }
+
+      function aoDigitar() {
+        aplicarNoDocumento();
+      }
+
+      frame.addEventListener("load", () => {
+        setTimeout(() => {
+          aplicarNoDocumento();
+          ajustarAlturaPreview();
+        }, 50);
+      });
+
+      frame.addEventListener("error", () => {
+        msgErroDoc.classList.add("visivel");
+      });
+
+      document.querySelector(".sidebar").addEventListener("input", (e) => {
+        if (e.target.id === "inp-nome") {
+          const pos = e.target.selectionStart;
+          e.target.value = e.target.value.toUpperCase();
+          e.target.setSelectionRange(pos, pos);
+        }
+        if (e.target.id === "inp-ref-mes") e.target.value = maskMesAno(e.target.value);
+        if (e.target.id === "inp-vencimento") e.target.value = maskData(e.target.value);
+        if (e.target.id === "inp-cep") {
+          e.target.value = maskCep(e.target.value);
+          $("cep-status").textContent = "";
+        }
+        if (e.target.id === "inp-cpf") {
+          _cpfRaw = e.target.value.replace(/\D/g, "").slice(0, 11);
+          e.target.value = maskCpf(_cpfRaw);
+        }
+        if (e.target.id === "inp-leitura-ant-num" || e.target.id === "inp-leitura-atual-num") {
+          const ant = parseInt($("inp-leitura-ant-num").value, 10) || 0;
+          const atu = parseInt($("inp-leitura-atual-num").value, 10) || 0;
+          if (atu > ant) $("inp-consumo").value = String(atu - ant);
+        }
+        aoDigitar();
+      });
+
+      $("btn-buscar-cep").addEventListener("click", () => {
+        const digits = $("inp-cep").value.replace(/\D/g, "");
+        if (digits.length === 8) buscarCep(digits);
+        else { $("cep-status").textContent = "CEP incompleto"; $("cep-status").style.color = "#ef4444"; }
+      });
+
+      $("inp-cpf").addEventListener("focus", () => {
+        $("inp-cpf").value = maskCpf(_cpfRaw);
+      });
+
+      $("inp-cpf").addEventListener("blur", () => {
+        _cpfRaw = $("inp-cpf").value.replace(/\D/g, "").slice(0, 11);
+        if (_cpfRaw.length === 11) $("inp-cpf").value = maskCpfOculto(_cpfRaw);
+      });
+
+      $("btn-imprimir").addEventListener("click", () => {
+        aplicarNoDocumento();
+        const tituloOriginal = document.title;
+        const nome = $("inp-nome").value.trim() || "COPEL";
+        document.title = `Fatura COPEL ${nome}`;
+        const imprimir = () => {
+          try {
+            const win = frame.contentWindow;
+            if (!win || !frame.contentDocument?.getElementById("pf1")) {
+              window.print();
+              return;
+            }
+            win.focus();
+            win.print();
+          } catch (_) {
+            window.print();
+          }
+        };
+        setTimeout(imprimir, 100);
+        setTimeout(() => { document.title = tituloOriginal; }, 2000);
+      });
+
+      (function aplicarTema() {
+        try {
+          const cfg = JSON.parse(localStorage.getItem("lanhouse_config") || "{}");
+          if (cfg.corTema) document.documentElement.style.setProperty("--accent", cfg.corTema);
+        } catch (_) {}
+      })();
+
+      preencherFormulario();
+      // iframe pode carregar depois do script — load handler aplica os dados
+    </script>
+  </body>
+</html>
