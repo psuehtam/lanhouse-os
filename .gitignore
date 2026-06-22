@@ -19,6 +19,3 @@ npm-debug.log*
 # Temporários de build
 *.tmp
 *.bak
-
-# Arquivo gerado — não commitar se quiser manter fonte limpa
-# modulos/copel/doc.html

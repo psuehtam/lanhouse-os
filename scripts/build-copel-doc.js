@@ -1,9 +1,8 @@
 /**
  * Regenera o documento COPEL a partir de modulos/copel/fatura.html
  *
- * Saídas:
- *   - modulos/copel/doc.html   (standalone, opcional)
- *   - modulos/copel.html       (conteúdo embutido — funciona em file:// offline)
+ * Saída:
+ *   - modulos/copel.html  (conteúdo embutido — funciona em file:// offline)
  *
  * Uso: node scripts/build-copel-doc.js
  */
@@ -12,7 +11,6 @@ const path = require("path");
 
 const raiz = path.join(__dirname, "..");
 const fontePath = path.join(raiz, "modulos", "copel", "fatura.html");
-const docPath = path.join(raiz, "modulos", "copel", "doc.html");
 const copelPath = path.join(raiz, "modulos", "copel.html");
 
 const MARK_STYLES_START = "<!-- @build:copel-styles-start -->";
@@ -116,102 +114,6 @@ const printScale = 210 / ptToMm(PAGE_W_PT);
 const printScaleStr = printScale.toFixed(5);
 const marginBottomPt = (-(PAGE_H_PT * (1 - printScale))).toFixed(3);
 const marginRightPt = (-(PAGE_W_PT * (1 - printScale))).toFixed(3);
-
-const overridesStandalone = `
-#sidebar,
-#outline {
-  display: none !important;
-}
-@media screen {
-  html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
-    overflow: hidden !important;
-    width: ${SCREEN_W}px !important;
-    height: ${SCREEN_H}px !important;
-    min-width: ${SCREEN_W}px !important;
-    max-width: ${SCREEN_W}px !important;
-    min-height: ${SCREEN_H}px !important;
-    max-height: ${SCREEN_H}px !important;
-  }
-  #page-container {
-    position: relative !important;
-    left: 0 !important;
-    top: 0 !important;
-    right: auto !important;
-    bottom: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: ${SCREEN_W}px !important;
-    height: ${SCREEN_H}px !important;
-    min-width: ${SCREEN_W}px !important;
-    max-width: ${SCREEN_W}px !important;
-    min-height: ${SCREEN_H}px !important;
-    max-height: ${SCREEN_H}px !important;
-    overflow: hidden !important;
-    background: #fff !important;
-  }
-  .pf.w0.h0 {
-    width: ${IMG_W}px !important;
-    height: ${IMG_H}px !important;
-    min-width: ${IMG_W}px !important;
-    max-width: ${IMG_W}px !important;
-    min-height: ${IMG_H}px !important;
-    max-height: ${IMG_H}px !important;
-    margin: 0 !important;
-    overflow: hidden !important;
-  }
-  .pc.w0.h0 {
-    overflow: hidden !important;
-  }
-  .bi.x0.y0.w1.h1 {
-    left: 0 !important;
-    bottom: 0 !important;
-    width: ${IMG_W}px !important;
-    height: ${IMG_H}px !important;
-  }
-}
-@media print {
-  @page {
-    size: A4 portrait;
-    margin: 0;
-  }
-  html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 210mm !important;
-    height: 297mm !important;
-    max-width: 210mm !important;
-    max-height: 297mm !important;
-    overflow: hidden !important;
-    background: #fff !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  #page-container {
-    position: relative !important;
-    top: 0 !important;
-    left: 0 !important;
-    margin: 0 ${marginRightPt}pt ${marginBottomPt}pt 0 !important;
-    padding: 0 !important;
-    width: ${PAGE_W_PT}pt !important;
-    height: ${PAGE_H_PT}pt !important;
-    overflow: visible !important;
-    background: #fff !important;
-    transform: scale(${printScaleStr}) !important;
-    transform-origin: top left !important;
-    -webkit-transform: scale(${printScaleStr}) !important;
-    -webkit-transform-origin: top left !important;
-  }
-  .pf.w0.h0 {
-    margin: 0 !important;
-    overflow: visible !important;
-    page-break-after: always !important;
-    page-break-inside: avoid !important;
-  }
-}
-`;
 
 const overridesEmbedded = `
 #copel-doc #sidebar,
@@ -319,24 +221,6 @@ function replaceBetween(html, startMark, endMark, replacement) {
   return html.slice(0, start) + replacement + html.slice(end + endMark.length);
 }
 
-const doc = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>COPEL — Documento</title>
-<style>
-${styles}
-${overridesStandalone}
-</style>
-</head>
-<body>
-${pageBlock}
-</body>
-</html>`;
-
-fs.writeFileSync(docPath, doc);
-
 let copelHtml = fs.readFileSync(copelPath, "utf8");
 copelHtml = replaceBetween(
   copelHtml,
@@ -352,6 +236,5 @@ copelHtml = replaceBetween(
 );
 fs.writeFileSync(copelPath, copelHtml);
 
-console.log("Gerado:", docPath);
 console.log("Atualizado:", copelPath, "(documento embutido — file:// OK)");
-console.log(idx, "campos de texto |", doc.includes(".w0{width") ? "CSS OK" : "CSS incompleto");
+console.log(idx, "campos de texto |", embeddedStyles.includes(".w0{width") ? "CSS OK" : "CSS incompleto");

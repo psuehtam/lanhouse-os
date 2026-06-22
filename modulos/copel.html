@@ -104,6 +104,12 @@
       background: #fff;
     }
 
+    .field input[readonly] {
+      background: #eef0f2;
+      color: var(--text-secondary);
+      cursor: default;
+    }
+
     .field-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -967,25 +973,29 @@
 
         <div class="divider"></div>
         <span class="sidebar-title">Fatura</span>
-        <p class="field-hint">Altere referência ou vencimento para recalcular as datas. Deixe em branco para usar a data atual.</p>
+        <p class="field-hint">Informe o vencimento; referência e leituras são calculados automaticamente.</p>
+        <div class="field">
+          <label for="inp-vencimento">Vencimento</label>
+          <input id="inp-vencimento" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" />
+        </div>
         <div class="field-row">
           <div class="field">
             <label for="inp-ref-mes">Referência (mês/ano)</label>
-            <input id="inp-ref-mes" type="text" inputmode="numeric" maxlength="7" placeholder="MM/AAAA" />
+            <input id="inp-ref-mes" type="text" readonly tabindex="-1" />
           </div>
           <div class="field">
-            <label for="inp-vencimento">Vencimento</label>
-            <input id="inp-vencimento" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/AAAA" />
+            <label for="inp-leitura-atual">Leitura atual (data)</label>
+            <input id="inp-leitura-atual" type="text" readonly tabindex="-1" />
           </div>
         </div>
         <div class="field-row">
           <div class="field">
             <label for="inp-leitura-ant">Leitura anterior (data)</label>
-            <input id="inp-leitura-ant" type="text" readonly />
+            <input id="inp-leitura-ant" type="text" readonly tabindex="-1" />
           </div>
           <div class="field">
-            <label for="inp-leitura-atual">Leitura atual (data)</label>
-            <input id="inp-leitura-atual" type="text" readonly />
+            <label for="inp-proxima-leitura">Próxima leitura (data)</label>
+            <input id="inp-proxima-leitura" type="text" readonly tabindex="-1" />
           </div>
         </div>
 
@@ -1081,6 +1091,7 @@
         classificacao: "B3 Comercial, Servicos, Outras Atividades / Exploracao de Jogos Eletronicos Recreati",
         tipoFornecimento: "Monofasico /50A",
         iluminacao: "Municipio 156",
+        vencimento: "03/07/2026",
         reavisoAtivo: false,
         reavisoRef: "05/2026",
         reavisoValor: "100,32",
@@ -1108,52 +1119,49 @@
         return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`;
       }
 
+      function parseDataBr(str) {
+        const m = String(str || "").trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (!m) return null;
+        const d = new Date(+m[3], +m[2] - 1, +m[1]);
+        return Number.isNaN(d.getTime()) ? null : d;
+      }
+
       function calcularDatasAutomaticas() {
-        const hoje = new Date();
-        const diasEntreLeituras = 32;
+        const DIAS_ATE_LEITURA_ATUAL = 23;
+        const DIAS_ENTRE_LEITURAS = 30;
 
-        // Mês de referência: usa o campo se preenchido e válido, senão mês atual
-        const refMesStr = ($("inp-ref-mes") || {}).value || "";
-        let refDate = null;
-        if (/^\d{2}\/\d{4}$/.test(refMesStr.trim())) {
-          const [m, y] = refMesStr.trim().split("/");
-          const t = new Date(+y, +m - 1, 1);
-          if (!isNaN(t.getTime())) refDate = t;
-        }
-        const base = refDate || hoje;
-        const mes = base.getMonth();
-        const ano = base.getFullYear();
-        const refMes = `${pad2(mes + 1)}/${ano}`;
+        const vencStr = ($("inp-vencimento") || {}).value.trim();
+        let vencDate = parseDataBr(vencStr);
+        let vencimento = vencStr;
 
-        // Vencimento: usa o campo se preenchido e válido, senão dia 20 do mês seguinte ao ref
-        const vencStr = ($("inp-vencimento") || {}).value || "";
-        let vencimento;
-        if (/^\d{2}\/\d{2}\/\d{4}$/.test(vencStr.trim())) {
-          vencimento = vencStr.trim();
-        } else {
-          let vencMes = mes + 1;
-          let vencAno = ano;
-          if (vencMes > 11) { vencMes = 0; vencAno += 1; }
-          vencimento = formatarData(new Date(vencAno, vencMes, 20));
+        if (!vencDate) {
+          const hoje = new Date();
+          let mes = hoje.getMonth() + 1;
+          let ano = hoje.getFullYear();
+          if (mes > 11) {
+            mes = 0;
+            ano += 1;
+          }
+          vencDate = new Date(ano, mes, 3);
+          vencimento = formatarData(vencDate);
         }
 
-        // Leitura atual: se ref personalizado, usa último dia do mês (sem ultrapassar hoje)
-        let leituraAtual;
-        if (refDate) {
-          const ultimoDia = new Date(ano, mes + 1, 0);
-          leituraAtual = ultimoDia > hoje ? new Date(hoje) : ultimoDia;
-        } else {
-          leituraAtual = new Date(hoje);
-        }
+        const leituraAtual = new Date(vencDate);
+        leituraAtual.setDate(leituraAtual.getDate() - DIAS_ATE_LEITURA_ATUAL);
 
         const leituraAnterior = new Date(leituraAtual);
-        leituraAnterior.setDate(leituraAnterior.getDate() - diasEntreLeituras);
+        leituraAnterior.setDate(leituraAnterior.getDate() - DIAS_ENTRE_LEITURAS);
 
         const proximaLeitura = new Date(leituraAtual);
-        proximaLeitura.setDate(proximaLeitura.getDate() + 30);
+        proximaLeitura.setDate(proximaLeitura.getDate() + DIAS_ENTRE_LEITURAS);
 
         const emissao = new Date(leituraAtual);
-        emissao.setDate(emissao.getDate() + 2);
+        emissao.setDate(emissao.getDate() + 1);
+
+        const refMes = `${pad2(leituraAtual.getMonth() + 1)}/${leituraAtual.getFullYear()}`;
+        const numDias = String(
+          Math.round((leituraAtual.getTime() - leituraAnterior.getTime()) / 86400000)
+        );
 
         return {
           refMes,
@@ -1161,7 +1169,7 @@
           leituraAtual: formatarData(leituraAtual),
           leituraAnterior: formatarData(leituraAnterior),
           proximaLeitura: formatarData(proximaLeitura),
-          numDias: String(diasEntreLeituras),
+          numDias,
           emissao: formatarData(emissao),
         };
       }
@@ -1250,13 +1258,6 @@
 
       function formatarValorNum(v) {
         return String(v || "").replace(".", ",").replace(/[^\d,]/g, "");
-      }
-
-      function parseDataBr(str) {
-        const m = String(str || "").trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-        if (!m) return null;
-        const d = new Date(+m[3], +m[2] - 1, +m[1]);
-        return Number.isNaN(d.getTime()) ? null : d;
       }
 
       function calcularDataCorte(vencimento) {
@@ -1430,10 +1431,11 @@
 
         aplicarReaviso(docRoot, s);
 
-        if (!$("inp-ref-mes").value.trim()) $("inp-ref-mes").value = s.refMes;
         if (!$("inp-vencimento").value.trim()) $("inp-vencimento").value = s.vencimento;
+        $("inp-ref-mes").value = s.refMes;
         $("inp-leitura-ant").value = s.leituraAnterior;
         $("inp-leitura-atual").value = s.leituraAtual;
+        $("inp-proxima-leitura").value = s.proximaLeitura;
         if (s.consumo && !$("inp-consumo").value.trim()) $("inp-consumo").value = s.consumo;
         ajustarAlturaPreview();
       }
@@ -1455,6 +1457,7 @@
         $("inp-classificacao").value = defaults.classificacao;
         $("inp-tipo-fornecimento").value = defaults.tipoFornecimento;
         $("inp-iluminacao").value = defaults.iluminacao;
+        $("inp-vencimento").value = defaults.vencimento;
         $("inp-reaviso-ativo").checked = defaults.reavisoAtivo;
         $("inp-reaviso-ref").value = defaults.reavisoRef;
         $("inp-reaviso-valor").value = defaults.reavisoValor;
@@ -1472,7 +1475,6 @@
           e.target.value = e.target.value.toUpperCase();
           e.target.setSelectionRange(pos, pos);
         }
-        if (e.target.id === "inp-ref-mes") e.target.value = maskMesAno(e.target.value);
         if (e.target.id === "inp-vencimento") e.target.value = maskData(e.target.value);
         if (e.target.id === "inp-reaviso-ref") e.target.value = maskMesAno(e.target.value);
         if (e.target.id === "inp-reaviso-vencimento") e.target.value = maskData(e.target.value);
