@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ENCCEJA — Certificado</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #f5f5f7;
+        --surface: #ffffff;
+        --border: rgba(0, 0, 0, 0.08);
+        --border-focus: rgba(233, 69, 96, 0.35);
+        --text-primary: #1a1a2e;
+        --text-secondary: #5c5c6e;
+        --text-muted: #71717a;
+        --accent: #e94560;
+        --radius-sm: 6px;
+
+        /*
+         * Mapa do certificado (imagem 1240 × 1755 px)
+         * Coordenadas fornecidas pelo usuário (L=Largura, A=Altura, X=esquerda, Y=topo):
+         *   ALUNO:          L:1153  A:26,31  X:47   Y:371,69
+         *   NATURALIDADE:   L:1153  A:22,02  X:47   Y:400,99
+         *   RG/UF:          L: 291  A:22     X:47   Y:426
+         *   CPF:            L: 862  A:22     X:338  Y:426
+         *   NASCIMENTO:     L:1153  A:22,02  X:47   Y:451
+         */
+
+        /* ALUNO  — h=24.31px (26.31−2), top=372.69 (centro mantido) */
+        --aluno-top:    21.24%;
+        --aluno-h:       1.39%;
+        --aluno-left:    3.87%;
+        --aluno-width:  92.90%;
+
+        /* NATURALIDADE  — h=20.02px, top=401.99 */
+        --nat-top:      22.90%;
+        --nat-h:         1.14%;
+        --nat-left:      3.87%;
+        --nat-width:    92.90%;
+
+        /* RG/UF  — h=20px, top=427 */
+        --rg-top:       24.33%;
+        --rg-h:          1.14%;
+        --rg-left:       3.87%;
+        --rg-width:     23.47%;
+
+        /* CPF  — h=20px, top=427 */
+        --cpf-top:      24.33%;
+        --cpf-h:         1.14%;
+        --cpf-left:     27.26%;
+        --cpf-width:    69.52%;
+
+        /* NASCIMENTO  — h=20.02px, top=452 */
+        --nasc-top:     25.75%;
+        --nasc-h:        1.14%;
+        --nasc-left:     3.87%;
+        --nasc-width:   92.90%;
+
+        /* Fonte: proporcional à largura do container */
+        --cert-font:    0.016;
+      }
+
+      html, body {
+        height: 100%;
+        overflow: hidden;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text-primary);
+        font-size: 14px;
+      }
+
+      a { color: inherit; text-decoration: none; }
+
+      .app {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+      }
+
+      .app-header {
+        grid-column: 1 / -1;
+        padding: 16px 24px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .btn-back {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        background: var(--bg);
+        border: 1px solid var(--border);
+      }
+
+      .app-header h1 { font-size: 1.15rem; font-weight: 700; }
+      .app-header p { font-size: 13px; color: var(--text-muted); margin-left: auto; }
+
+      .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        padding: 20px 18px;
+        overflow-y: auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .sidebar-title {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+
+      .field { display: flex; flex-direction: column; gap: 5px; }
+      .field label { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+      .field input {
+        width: 100%;
+        padding: 9px 11px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-family: inherit;
+        font-size: 14px;
+        background: #f8f9fa;
+      }
+      .field input:focus {
+        outline: none;
+        border-color: var(--border-focus);
+        background: #fff;
+      }
+
+      .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .field-hint { font-size: 11px; color: var(--text-muted); }
+
+      .btn {
+        appearance: none;
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        width: 100%;
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .preview-area {
+        padding: 24px;
+        overflow: auto;
+        background: #ebebed;
+        min-height: 0;
+      }
+
+      .preview-wrap {
+        width: 620px;
+        margin: 0 auto;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.09);
+        background: #fff;
+      }
+
+      #cert-doc {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1240 / 1755;
+        overflow: hidden;
+        background: #fff;
+        container-type: inline-size;
+      }
+
+      #cert-doc img.cert-bg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+      }
+
+      /* ── overlay genérico ── */
+      .ov-cover,
+      .ov-text {
+        position: absolute;
+        box-sizing: border-box;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .ov-cover {
+        display: none;
+      }
+
+      .ov-text {
+        z-index: 3;
+        background: transparent;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: calc(100cqw * var(--cert-font));
+        font-weight: 400;
+        line-height: 1;
+        color: #111;
+        letter-spacing: 0;
+        padding: 0 0 0 2px;
+        margin: 0;
+      }
+
+      /* Aluno: centralizado na linha */
+      .ov-text.ov-aluno {
+        display: block;
+        line-height: var(--ov-line);
+      }
+
+      /* Demais campos: alinhados na parte inferior da linha */
+      .ov-text.ov-nat,
+      .ov-text.ov-rg,
+      .ov-text.ov-cpf,
+      .ov-text.ov-nasc {
+        display: flex;
+        align-items: flex-end;
+      }
+
+      .ov-aluno      { top: var(--aluno-top); left: var(--aluno-left); width: var(--aluno-width); height: var(--aluno-h); --ov-line: calc(100cqw * 24.31 / 1240); }
+      .ov-nat        { top: var(--nat-top);   left: var(--nat-left);   width: var(--nat-width);   height: var(--nat-h);   }
+      .ov-rg         { top: var(--rg-top);    left: var(--rg-left);    width: var(--rg-width);    height: var(--rg-h);    }
+      .ov-cpf        { top: var(--cpf-top);   left: var(--cpf-left);   width: var(--cpf-width);   height: var(--cpf-h);   }
+      .ov-nasc       { top: var(--nasc-top);  left: var(--nasc-left);  width: var(--nasc-width);  height: var(--nasc-h);  }
+
+      @media (max-width: 900px) {
+        .app {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto 1fr;
+          overflow: auto;
+          height: auto;
+          min-height: 100vh;
+        }
+        html, body { overflow: auto; }
+        .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+        .field-row { grid-template-columns: 1fr; }
+      }
+
+      @media print {
+        @page { size: A4 portrait; margin: 0; }
+
+        .app-header,
+        .sidebar { display: none !important; }
+
+        html, body {
+          width: 210mm !important;
+          height: 297mm !important;
+          overflow: hidden !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #fff !important;
+        }
+
+        .app {
+          display: block !important;
+          width: 210mm !important;
+          height: 297mm !important;
+          overflow: hidden !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        .preview-area {
+          display: block !important;
+          width: 210mm !important;
+          height: 297mm !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          overflow: hidden !important;
+          background: #fff !important;
+        }
+
+        .preview-wrap {
+          width: 210mm !important;
+          height: 297mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          box-shadow: none !important;
+          overflow: hidden !important;
+          page-break-after: avoid !important;
+          break-after: avoid !important;
+        }
+
+        #cert-doc {
+          width: 210mm !important;
+          height: 297mm !important;
+          aspect-ratio: auto !important;
+          overflow: hidden !important;
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+
+        #cert-doc img.cert-bg {
+          width: 210mm !important;
+          height: 297mm !important;
+          object-fit: fill !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-header">
+        <a href="../index.html" class="btn-back">← Voltar</a>
+        <h1>ENCCEJA — Certificado</h1>
+        <p>Edite os dados do aluno e imprima</p>
+      </header>
+
+      <aside class="sidebar">
+        <span class="sidebar-title">Dados do aluno</span>
+
+        <div class="field">
+          <label for="inp-nome">Nome do(a) aluno(a)</label>
+          <input id="inp-nome" type="text" autocapitalize="characters"
+                 style="text-transform:uppercase" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="inp-naturalidade">Naturalidade</label>
+            <input id="inp-naturalidade" type="text" placeholder="CIDADE/UF"
+                   style="text-transform:uppercase" />
+          </div>
+          <div class="field">
+            <label for="inp-rg">RG / UF</label>
+            <input id="inp-rg" type="text" placeholder="00.000.000-0 / UF" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="inp-cpf">CPF</label>
+            <input id="inp-cpf" type="text" inputmode="numeric" maxlength="14" />
+          </div>
+          <div class="field">
+            <label for="inp-nascimento">Data de nascimento</label>
+            <input id="inp-nascimento" type="text" inputmode="numeric"
+                   maxlength="10" placeholder="DD/MM/AAAA" />
+          </div>
+        </div>
+
+        <p class="field-hint">
+          Os valores são sobrepostos sobre o certificado original nos campos correspondentes.
+        </p>
+
+        <button type="button" id="btn-imprimir" class="btn">Imprimir certificado</button>
+      </aside>
+
+      <main class="preview-area">
+        <div class="preview-wrap">
+          <div id="cert-doc" aria-label="Certificado ENCCEJA">
+            <img class="cert-bg"
+                 src="../assets/img/encceja-certificado.jpg"
+                 alt="" width="1240" height="1755" />
+
+            <!-- Aluno -->
+            <div class="ov-cover ov-aluno" aria-hidden="true"></div>
+            <div class="ov-text  ov-aluno" id="ov-nome"></div>
+
+            <!-- Naturalidade -->
+            <div class="ov-cover ov-nat" aria-hidden="true"></div>
+            <div class="ov-text  ov-nat" id="ov-nat"></div>
+
+            <!-- RG/UF -->
+            <div class="ov-cover ov-rg" aria-hidden="true"></div>
+            <div class="ov-text  ov-rg" id="ov-rg"></div>
+
+            <!-- CPF -->
+            <div class="ov-cover ov-cpf" aria-hidden="true"></div>
+            <div class="ov-text  ov-cpf" id="ov-cpf"></div>
+
+            <!-- Nascimento -->
+            <div class="ov-cover ov-nasc" aria-hidden="true"></div>
+            <div class="ov-text  ov-nasc" id="ov-nasc"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      const defaults = {
+        nome:         "ANA LUCIA ALMEIDA",
+        naturalidade: "ALMIRANTE TAMANDARÉ/PR",
+        rg:           "13.430.198-8 / PR",
+        cpf:          "10086737902",
+        nascimento:   "30/10/1998",
+      };
+
+      let _cpfRaw = defaults.cpf;
+
+      function maskCpf(v) {
+        const d = String(v || "").replace(/\D/g, "").slice(0, 11);
+        if (d.length <= 3) return d;
+        if (d.length <= 6) return `${d.slice(0,3)}.${d.slice(3)}`;
+        if (d.length <= 9) return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6)}`;
+        return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`;
+      }
+
+      function maskData(v) {
+        const d = String(v || "").replace(/\D/g, "").slice(0, 8);
+        if (d.length <= 2) return d;
+        if (d.length <= 4) return `${d.slice(0,2)}/${d.slice(2)}`;
+        return `${d.slice(0,2)}/${d.slice(2,4)}/${d.slice(4)}`;
+      }
+
+      function upper(v) { return String(v || "").toUpperCase(); }
+
+      function aplicar() {
+        const nome  = upper($("inp-nome").value.trim()) || defaults.nome;
+        const nat   = upper($("inp-naturalidade").value.trim()) || defaults.naturalidade;
+        const rg    = $("inp-rg").value.trim() || defaults.rg;
+        const cpf   = maskCpf(_cpfRaw) || maskCpf(defaults.cpf);
+        const nasc  = $("inp-nascimento").value.trim() || defaults.nascimento;
+
+        $("ov-nome").textContent = "Aluno(a): " + nome;
+        $("ov-nat" ).textContent = "Naturalidade: " + nat;
+        $("ov-rg"  ).textContent = "RG/UF: " + rg;
+        $("ov-cpf" ).textContent = "CPF: " + cpf;
+        $("ov-nasc").textContent = "Data de Nascimento: " + nasc;
+      }
+
+      function preencherFormulario() {
+        $("inp-nome"        ).value = defaults.nome;
+        $("inp-naturalidade").value = defaults.naturalidade;
+        $("inp-rg"          ).value = defaults.rg;
+        _cpfRaw = defaults.cpf;
+        $("inp-cpf"         ).value = maskCpf(_cpfRaw);
+        $("inp-nascimento"  ).value = defaults.nascimento;
+      }
+
+      document.querySelector(".sidebar").addEventListener("input", (e) => {
+        if (e.target.id === "inp-nome" || e.target.id === "inp-naturalidade") {
+          const pos = e.target.selectionStart;
+          e.target.value = e.target.value.toUpperCase();
+          e.target.setSelectionRange(pos, pos);
+        }
+        if (e.target.id === "inp-cpf") {
+          _cpfRaw = e.target.value.replace(/\D/g, "").slice(0, 11);
+          e.target.value = maskCpf(_cpfRaw);
+        }
+        if (e.target.id === "inp-nascimento") {
+          e.target.value = maskData(e.target.value);
+        }
+        aplicar();
+      });
+
+      $("btn-imprimir").addEventListener("click", () => {
+        aplicar();
+        const titulo = document.title;
+        document.title = `Certificado ENCCEJA ${$("inp-nome").value.trim() || "aluno"}`;
+        setTimeout(() => window.print(), 100);
+        setTimeout(() => { document.title = titulo; }, 2000);
+      });
+
+      (function aplicarTema() {
+        try {
+          const cfg = JSON.parse(localStorage.getItem("lanhouse_config") || "{}");
+          if (cfg.corTema) document.documentElement.style.setProperty("--accent", cfg.corTema);
+        } catch (_) {}
+      })();
+
+      preencherFormulario();
+      aplicar();
+    </script>
+  </body>
+</html>

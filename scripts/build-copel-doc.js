@@ -59,6 +59,8 @@ const CAMPOS_POR_INDICE = {
   20: "cep-linha",
   21: "cidade-linha",
   22: "cpf-linha",
+  23: "nota-fiscal-emissao",
+  28: "protocolo-autorizacao",
   126: "leitura-ant-num",
   127: "leitura-atual-num",
   129: "consumo-faturado",
