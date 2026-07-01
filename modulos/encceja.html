@@ -34,32 +34,32 @@
         --aluno-left:    3.87%;
         --aluno-width:  92.90%;
 
-        /* NATURALIDADE  — h=20.02px, top=401.99 */
-        --nat-top:      22.90%;
+        /* NATURALIDADE  — h=20.02px, top=404.49 (+2.5px) */
+        --nat-top:      23.05%;
         --nat-h:         1.14%;
         --nat-left:      3.87%;
         --nat-width:    92.90%;
 
-        /* RG/UF  — h=20px, top=427 */
-        --rg-top:       24.33%;
+        /* RG/UF  — h=20px, top=429.75 (+2.75px) */
+        --rg-top:       24.49%;
         --rg-h:          1.14%;
         --rg-left:       3.87%;
         --rg-width:     23.47%;
 
-        /* CPF  — h=20px, top=427 */
-        --cpf-top:      24.33%;
+        /* CPF  — h=20px, top=429.75 (+2.75px) */
+        --cpf-top:      24.49%;
         --cpf-h:         1.14%;
         --cpf-left:     27.26%;
         --cpf-width:    69.52%;
 
-        /* NASCIMENTO  — h=20.02px, top=452 */
-        --nasc-top:     25.75%;
+        /* NASCIMENTO  — h=20.02px, top=454.5 (+2.5px) */
+        --nasc-top:     25.90%;
         --nasc-h:        1.14%;
         --nasc-left:     3.87%;
         --nasc-width:   92.90%;
 
-        /* Fonte: proporcional à largura do container */
-        --cert-font:    0.016;
+        /* Fonte: levemente menor para não cortar ascendentes/descendentes no PDF */
+        --cert-font:    0.0152;
       }
 
       html, body {
@@ -200,31 +200,28 @@
       .ov-text {
         position: absolute;
         box-sizing: border-box;
-        overflow: hidden;
         white-space: nowrap;
       }
 
       .ov-cover {
         display: none;
+        overflow: hidden;
       }
 
       .ov-text {
         z-index: 3;
         background: transparent;
+        overflow: visible;
         font-family: Arial, Helvetica, sans-serif;
         font-size: calc(100cqw * var(--cert-font));
         font-weight: 400;
-        line-height: 1;
+        line-height: 1.15;
         color: #111;
         letter-spacing: 0;
-        padding: 0 0 0 2px;
+        padding: 0 1px 0 2px;
         margin: 0;
-      }
-
-      /* Aluno: centralizado na linha */
-      .ov-text.ov-aluno {
-        display: block;
-        line-height: var(--ov-line);
+        display: flex;
+        align-items: center;
       }
 
       /* Demais campos: alinhados na parte inferior da linha */
@@ -232,11 +229,11 @@
       .ov-text.ov-rg,
       .ov-text.ov-cpf,
       .ov-text.ov-nasc {
-        display: flex;
         align-items: flex-end;
+        padding-bottom: 1px;
       }
 
-      .ov-aluno      { top: var(--aluno-top); left: var(--aluno-left); width: var(--aluno-width); height: var(--aluno-h); --ov-line: calc(100cqw * 24.31 / 1240); }
+      .ov-aluno      { top: var(--aluno-top); left: var(--aluno-left); width: var(--aluno-width); height: var(--aluno-h); }
       .ov-nat        { top: var(--nat-top);   left: var(--nat-left);   width: var(--nat-width);   height: var(--nat-h);   }
       .ov-rg         { top: var(--rg-top);    left: var(--rg-left);    width: var(--rg-width);    height: var(--rg-h);    }
       .ov-cpf        { top: var(--cpf-top);   left: var(--cpf-left);   width: var(--cpf-width);   height: var(--cpf-h);   }
@@ -313,6 +310,13 @@
           width: 210mm !important;
           height: 297mm !important;
           object-fit: fill !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        .ov-text {
+          overflow: visible !important;
+          text-rendering: geometricPrecision;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
